@@ -1,0 +1,1918 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hermes Agent 记忆模块手册（完整版）</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface-2: #222632;
+    --border: #2d3142;
+    --text: #e0e0e8;
+    --text-dim: #9999aa;
+    --accent: #6c8aff;
+    --accent-dim: #4a6abf;
+    --green: #6ec07a;
+    --orange: #e0a060;
+    --red: #e06c6c;
+    --purple: #b48ce8;
+    --code-bg: #161821;
+    --code-border: #2a2d3a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    font-size: 15px;
+  }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px 80px; }
+
+  .header {
+    background: linear-gradient(135deg, #1a1d27 0%, #222632 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 24px 40px;
+    text-align: center;
+  }
+  .header h1 { font-size: 28px; font-weight: 700; color: #fff; margin-bottom: 8px; letter-spacing: 0.5px; }
+  .header .subtitle { font-size: 14px; color: var(--text-dim); margin-bottom: 16px; }
+  .header .meta { font-size: 12px; color: var(--text-dim); display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; }
+  .header .meta span { display: inline-flex; align-items: center; gap: 4px; }
+  .header .meta .tag { background: var(--accent-dim); color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 11px; }
+
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px 28px;
+    margin: 32px 0;
+  }
+  .toc h2 { font-size: 16px; color: var(--accent); margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  .toc ol { list-style: none; counter-reset: toc; }
+  .toc ol li { counter-increment: toc; margin-bottom: 5px; font-size: 14px; }
+  .toc ol li::before { content: counter(toc) ". "; color: var(--accent); font-weight: 600; }
+  .toc ol li a { color: var(--text); text-decoration: none; transition: color 0.2s; }
+  .toc ol li a:hover { color: var(--accent); }
+  .toc .sub { padding-left: 24px; font-size: 13px; color: var(--text-dim); }
+  .toc .sub::before { content: "· "; }
+
+  section { margin-bottom: 48px; }
+  h2 {
+    font-size: 22px; font-weight: 700; color: #fff;
+    margin-bottom: 16px; padding-bottom: 8px;
+    border-bottom: 2px solid var(--accent-dim);
+    display: flex; align-items: center; gap: 8px;
+  }
+  h2 .num {
+    background: var(--accent); color: #fff; font-size: 14px;
+    width: 28px; height: 28px; border-radius: 6px;
+    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  h3 { font-size: 17px; font-weight: 600; color: var(--accent); margin: 24px 0 12px; }
+  h4 { font-size: 15px; font-weight: 600; color: var(--orange); margin: 16px 0 8px; }
+  p { margin-bottom: 12px; }
+  ul, ol { margin: 8px 0 16px 20px; }
+  li { margin-bottom: 6px; line-height: 1.7; }
+  strong { color: #fff; font-weight: 600; }
+
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    margin: 12px 0;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  code {
+    background: var(--code-bg); border: 1px solid var(--code-border);
+    border-radius: 4px; padding: 2px 6px; font-size: 13px;
+    font-family: "Fira Code", "Cascadia Code", Consolas, "Courier New", monospace;
+    color: var(--green);
+  }
+  pre code { background: none; border: none; padding: 0; color: var(--text); }
+
+  .table-wrap { overflow-x: auto; margin: 12px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    background: var(--surface-2); color: var(--accent); font-weight: 600;
+    text-align: left; padding: 10px 14px; border: 1px solid var(--border); white-space: nowrap;
+  }
+  td { padding: 10px 14px; border: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: var(--surface); }
+
+  .callout {
+    border-left: 3px solid; border-radius: 0 6px 6px 0;
+    padding: 12px 20px; margin: 16px 0; font-size: 14px;
+  }
+  .callout-info { border-color: var(--accent); background: rgba(108, 138, 255, 0.08); }
+  .callout-warn { border-color: var(--orange); background: rgba(224, 160, 96, 0.08); }
+  .callout-danger { border-color: var(--red); background: rgba(224, 108, 108, 0.08); }
+  .callout-success { border-color: var(--green); background: rgba(110, 192, 122, 0.08); }
+  .callout .label { font-weight: 700; margin-right: 8px; }
+  .callout-info .label { color: var(--accent); }
+  .callout-warn .label { color: var(--orange); }
+  .callout-danger .label { color: var(--red); }
+  .callout-success .label { color: var(--green); }
+  .callout ul { margin: 6px 0 0 16px; }
+
+  /* Readable file tree (grid layout) */
+  .tree {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 8px;
+    padding: 10px 6px;
+    margin: 12px 0;
+    font-size: 13px;
+    overflow-x: auto;
+  }
+  .tree-row {
+    display: grid;
+    grid-template-columns: minmax(300px, max-content) 1fr;
+    gap: 14px;
+    align-items: baseline;
+    padding: 5px 14px;
+    border-radius: 6px;
+    line-height: 1.7;
+  }
+  .tree-row:hover { background: rgba(108, 138, 255, 0.08); }
+  .tree-row.root-row {
+    background: var(--surface-2);
+    margin: 0 8px 8px;
+    border: 1px solid var(--border);
+  }
+  .tree-row .t-name {
+    font-family: "Fira Code", "Cascadia Code", Consolas, monospace;
+    white-space: pre;
+  }
+  .tree-row .t-desc { color: var(--text-dim); font-size: 12px; line-height: 1.6; }
+  .tree .tc { color: #4a5068; }
+  .tree .dir { color: var(--accent); font-weight: 600; }
+  .tree .hl { color: var(--orange); font-weight: 600; }
+  .tree .f { color: var(--text); }
+  .tree .cat {
+    display: inline-block; padding: 0 8px; border-radius: 10px;
+    font-size: 10px; font-weight: 600; margin-left: 8px; vertical-align: 2px;
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+  }
+  .cat-personality { background: rgba(180,140,232,0.18); color: var(--purple); }
+  .cat-config { background: rgba(108,138,255,0.16); color: var(--accent); }
+  .cat-memory { background: rgba(224,160,96,0.18); color: var(--orange); }
+  .cat-skill { background: rgba(110,192,122,0.16); color: var(--green); }
+  .cat-project { background: rgba(92,200,190,0.16); color: #5cc8be; }
+  .cat-session { background: rgba(153,153,170,0.16); color: var(--text-dim); }
+  .cat-profile { background: rgba(110,192,122,0.18); color: var(--green); }
+  @media (max-width: 768px) {
+    .tree-row { grid-template-columns: 1fr; gap: 2px; padding: 6px 10px; }
+  }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; vertical-align: middle; }
+  .badge-blue { background: var(--accent-dim); color: #fff; }
+  .badge-green { background: rgba(110,192,122,0.2); color: var(--green); }
+  .badge-orange { background: rgba(224,160,96,0.2); color: var(--orange); }
+  .badge-red { background: rgba(224,108,108,0.2); color: var(--red); }
+  .badge-purple { background: rgba(180,140,232,0.2); color: var(--purple); }
+
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin: 40px 0; }
+  .footer { text-align: center; padding: 32px 0; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-dim); }
+
+  .flow-diagram { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 20px 0; }
+  .flow-node {
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 24px; font-size: 13px; font-weight: 600;
+    text-align: center; min-width: 200px;
+  }
+  .flow-node.accent { border-color: var(--accent); background: rgba(108,138,255,0.1); }
+  .flow-node.green { border-color: var(--green); background: rgba(110,192,122,0.1); }
+  .flow-node.orange { border-color: var(--orange); background: rgba(224,160,96,0.1); }
+  .flow-node small { font-weight: 400; color: var(--text-dim); }
+  .flow-arrow { color: var(--text-dim); font-size: 18px; line-height: 1; }
+  .flow-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+  .source-tag {
+    font-size: 11px; padding: 1px 8px; border-radius: 10px; margin-left: 8px;
+    vertical-align: middle; font-weight: 600;
+  }
+  .source-official { background: rgba(108,138,255,0.2); color: var(--accent); }
+  .source-deepseek { background: rgba(110,192,122,0.2); color: var(--green); }
+
+  .qa-block { border: 1px solid var(--border); border-radius: 8px; margin: 16px 0; overflow: hidden; }
+  .qa-block .qa-q { background: var(--surface-2); padding: 12px 18px; font-weight: 600; color: var(--orange); border-bottom: 1px solid var(--border); }
+  .qa-block .qa-a { padding: 12px 18px; }
+
+  .prio-level {
+    display: flex; align-items: flex-start; gap: 14px;
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 18px; margin: 10px 0; background: var(--surface);
+  }
+  .prio-level .rank {
+    flex-shrink: 0; width: 64px; text-align: center; padding: 6px 0;
+    border-radius: 6px; font-size: 13px; font-weight: 700; color: #fff;
+  }
+  .prio-level.p1 .rank { background: #c0392b; }
+  .prio-level.p2 .rank { background: #d35400; }
+  .prio-level.p3 .rank { background: #b8912a; }
+  .prio-level.p4 .rank { background: #2e8b57; }
+  .prio-level .body { flex: 1; }
+  .prio-level .body .name { font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .prio-level .body .name code { margin-left: 6px; }
+
+  /* ── 代码排查结果块（v2.1） ── */
+  .audit {
+    border: 1px dashed var(--border);
+    border-left: 4px solid var(--purple);
+    border-radius: 0 8px 8px 0;
+    background: rgba(180, 140, 232, 0.05);
+    padding: 14px 18px;
+    margin: 20px 0;
+    font-size: 13.5px;
+  }
+  .audit .audit-title {
+    font-weight: 700; color: var(--purple); font-size: 13px;
+    margin-bottom: 8px; letter-spacing: 0.5px;
+  }
+  .audit ul { margin: 0 0 0 4px; list-style: none; }
+  .audit li { margin-bottom: 7px; line-height: 1.65; padding-left: 2px; }
+  .audit li:last-child { margin-bottom: 0; }
+  .audit .ok::before   { content: "✅ "; }
+  .audit .bad::before  { content: "❌ "; }
+  .audit .warn::before { content: "⚠️ "; }
+  .audit .add::before  { content: "➕ "; }
+  .audit li code { font-size: 12px; }
+  .audit .verdict { display:inline-block; margin-left:6px; padding:0 8px; border-radius:10px; font-size:11px; font-weight:700; vertical-align:1px; }
+  .audit .v-ok   { background: rgba(110,192,122,0.2); color: var(--green); }
+  .audit .v-bad  { background: rgba(224,108,108,0.2); color: var(--red); }
+  .audit .v-warn { background: rgba(224,160,96,0.2); color: var(--orange); }
+  .audit .v-mix  { background: rgba(180,140,232,0.2); color: var(--purple); }
+  .audit-legend {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 20px; margin: 24px 0; font-size: 13px;
+  }
+  .audit-legend code { font-size: 12px; }
+
+  @media (max-width: 768px) {
+    .container { padding: 0 16px 40px; }
+    .header { padding: 32px 16px 24px; }
+    .header h1 { font-size: 22px; }
+    h2 { font-size: 18px; }
+    h3 { font-size: 15px; }
+    pre { font-size: 12px; padding: 12px; }
+    table { font-size: 12px; }
+    th, td { padding: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== HEADER ==================== -->
+<div class="header">
+  <h1>Hermes Agent 记忆模块手册</h1>
+  <div class="subtitle">Persistent Memory &mdash; 持久化记忆系统与桌面版配置完整指南（完整版 v2.0）</div>
+  <div class="meta">
+    <span><span class="tag">文档版本</span> v2.2 源码验证版</span>
+    <span>整理日期：2026-08-19</span>
+    <span>来源：<span class="badge badge-blue">官方文档</span> <span class="badge badge-green">DeepSeek 对话实录</span> <span class="badge badge-purple">hermes-agent 源码逐节排查</span></span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ==================== AUDIT LEGEND ==================== -->
+<div class="audit-legend">
+  <strong style="color:var(--purple)">本版说明（v2.2 源码验证版）：</strong>v2.1 为每个小节附「代码排查结果」块；v2.2 深化第 12 章：新增 12.1 桌面设置面板机制、12.2 插件生命周期（MemoryProvider ABC）、12.3 八插件逐行源码解析、12.4 内置 vs 外部对比表。对照本机 <code>hermes-agent</code> 源码逐项标注：
+  <strong style="color:var(--green)">✅ 代码证实</strong>（附文件与行号）、
+  <strong style="color:var(--red)">❌ 代码证伪</strong>（与源码实际行为冲突）、
+  <strong style="color:var(--orange)">⚠️ 无代码支撑</strong>（属文档表述/推断，源码中找不到对应常量或逻辑）、
+  <strong style="color:var(--purple)">➕ 源码新发现</strong>（手册此前未记载的能力）。
+  排查范围：<code>tools/memory_tool.py</code>、<code>hermes_constants.py</code>、<code>agent/agent_init.py</code>、<code>agent/system_prompt.py</code>、<code>agent/prompt_builder.py</code>、<code>hermes_cli/personality.py</code>、<code>hermes_cli/config_defaults.py</code>、<code>tools/session_search_tool.py</code>、<code>plugins/memory/</code>、<code>apps/desktop/</code> 等。排查过程只读不改源码。
+</div>
+
+<!-- ==================== TOC ==================== -->
+<div class="toc">
+  <h2>目录</h2>
+  <ol>
+    <li><a href="#sec1">记忆系统总览</a></li>
+    <li><a href="#sec2">记忆存储位置与目录结构</a></li>
+    <li class="sub"><a href="#sec2-1">2.1 存储位置（Windows / macOS / Linux）</a></li>
+    <li class="sub"><a href="#sec2-2">2.2 ~/.hermes/ 完整目录树</a></li>
+    <li class="sub"><a href="#sec2-3">2.3 MEMORY.md &mdash; 工作笔记本</a></li>
+    <li class="sub"><a href="#sec2-4">2.4 USER.md &mdash; 用户档案</a></li>
+    <li class="sub"><a href="#sec2-5">2.5 其他相关文件夹</a></li>
+    <li><a href="#sec3">记忆是如何工作的</a></li>
+    <li><a href="#sec4">记忆在系统 Prompt 中的呈现方式</a></li>
+    <li><a href="#sec5">Memory 工具操作</a></li>
+    <li class="sub"><a href="#sec5-1">5.1 三种操作：add / replace / remove</a></li>
+    <li class="sub"><a href="#sec5-2">5.2 子字符串匹配机制</a></li>
+    <li><a href="#sec6">两个记忆目标说明（memory vs user）</a></li>
+    <li><a href="#sec7">什么该保存，什么该跳过</a></li>
+    <li><a href="#sec8">容量管理与上限</a></li>
+    <li><a href="#sec9">重复防护与安全扫描</a></li>
+    <li><a href="#sec10">会话搜索 (session_search)</a></li>
+    <li><a href="#sec11">配置 (config.yaml)</a></li>
+    <li><a href="#sec12">外部记忆提供商</a></li>
+    <li><a href="#sec13">桌面版配置逻辑与文件结构解析</a></li>
+    <li class="sub"><a href="#sec13-1">13.1 核心概念总览（Profile &rarr; Session / Project）</a></li>
+    <li class="sub"><a href="#sec13-2">13.2 配置档案 (Profile) &mdash; 你的 AI 分身</a></li>
+    <li class="sub"><a href="#sec13-3">13.3 人格 (Personality) 与 SOUL.md</a></li>
+    <li class="sub"><a href="#sec13-4">13.4 记忆与上下文 (Memory &amp; Context)</a></li>
+    <li class="sub"><a href="#sec13-5">13.5 项目 (Project) 与会话 (Session)</a></li>
+    <li class="sub"><a href="#sec13-6">13.6 工作流程与关系图</a></li>
+    <li class="sub"><a href="#sec13-7">13.7 常见问题 FAQ</a></li>
+    <li><a href="#sec14">人格设置 9 个选项详解</a></li>
+    <li><a href="#sec15">intro-copy.md 与"Technical 人格未更新 SOUL.md"之谜</a></li>
+    <li class="sub"><a href="#sec15-1">15.1 intro-copy.md 是什么</a></li>
+    <li class="sub"><a href="#sec15-2">15.2 人格选择的实际生效机制</a></li>
+    <li class="sub"><a href="#sec15-3">15.3 如何验证 Technical 人格确实生效</a></li>
+    <li><a href="#sec16">记忆文件系统优先级管控顺序（4 级）</a></li>
+    <li><a href="#sec17">工作流与 .md 文件映射</a></li>
+    <li class="sub"><a href="#sec17-1">17.1 加载与推理阶段（读操作）</a></li>
+    <li class="sub"><a href="#sec17-2">17.2 检查与沉淀阶段（写操作）</a></li>
+    <li class="sub"><a href="#sec17-3">17.3 可视化全景图（文件填充版）</a></li>
+    <li><a href="#sec18">优质记忆条目示例</a></li>
+    <li><a href="#sec19">总结</a></li>
+  </ol>
+</div>
+
+<!-- ==================== SEC 1 ==================== -->
+<section id="sec1">
+  <h2><span class="num">1</span>记忆系统总览<span class="source-tag source-official">官方文档</span></h2>
+  <p>Hermes Agent 拥有<strong>有界、经过整理的持久化记忆</strong>，可跨会话保存。这使 Agent 能够记住用户偏好、项目环境、工作约定以及已学到的经验知识。</p>
+  <p>记忆系统的核心设计原则：</p>
+  <ul>
+    <li><strong>有界性</strong>：严格的字符上限，强制 Agent 进行信息筛选与压缩，只保留最重要的知识</li>
+    <li><strong>冻结快照</strong>：每次会话开始时从磁盘加载一次，注入系统 prompt，会话中途不变更，以保留 LLM 前缀缓存提升性能</li>
+    <li><strong>手动整理</strong>：Agent 自主决定什么该记、什么该忘，通过 <code>memory</code> 工具管理记忆条目</li>
+    <li><strong>安全防护</strong>：记忆条目在写入前经过安全扫描，防止 prompt 注入和数据外泄</li>
+  </ul>
+  <div class="callout callout-info">
+    <span class="label">信息</span>记忆系统的两个核心文件是 <code>MEMORY.md</code>（Agent 个人笔记）和 <code>USER.md</code>（用户档案），均存储在 <code>~/.hermes/memories/</code> 目录下。
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果 <span class="verdict v-ok">整体：代码证实</span></div>
+    <ul>
+      <li class="ok"><strong>有界性</strong>：字符上限 2,200 / 1,375 为代码常量，见 <code>tools/memory_tool.py</code> 的 MemoryStore 默认参数与 <code>hermes_cli/config_defaults.py:1770-1771</code>（注释明确标注 "≈800 tokens at 2.75 chars/token"）。</li>
+      <li class="ok"><strong>冻结快照</strong>：会话开始注入一次、写盘即时但 prompt 不变 —— <code>agent/system_prompt.py</code>（memory 块进入 volatile 段但仅随 prompt 重建刷新）与 <code>tools/memory_tool.py</code> 的 load_from_disk / save 逻辑证实。</li>
+      <li class="ok"><strong>手动整理 + 安全防护</strong>：add/replace/remove 三操作与 threat_patterns 安全扫描（scope="strict"）均在 <code>tools/memory_tool.py</code> 中实现。</li>
+      <li class="ok"><strong>两文件路径</strong>：MEMORY.md 与 USER.md 位于 <code>get_hermes_home()/memories/</code>，见 <code>tools/memory_tool.py</code>。</li>
+      <li class="add"><strong>源码新发现</strong>：<code>memory</code> 工具还支持 <strong>batch 批量操作</strong> 参数与 <strong>write approval 审批门</strong>（<code>config_defaults.py:1757-1768</code> 的 <code>memory.write_approval</code>，默认 false；开启后写入需经 <code>/memory approve</code>），本手册此前未记载。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SEC 2 ==================== -->
+<section id="sec2">
+  <h2><span class="num">2</span>记忆存储位置与目录结构<span class="source-tag source-deepseek">DeepSeek 对话</span></h2>
+
+  <h3 id="sec2-1">2.1 存储位置（Windows / macOS / Linux）</h3>
+  <p>Hermes 桌面版的"记忆"和"学习经验"，都储存在你电脑上的一个本地文件夹里。这个文件夹的位置取决于你的操作系统：</p>
+  <ul>
+    <li><strong>Windows 系统</strong>：<code>%LOCALAPPDATA%\hermes</code>（即 <code>C:\Users\&lt;用户名&gt;\AppData\Local\hermes\</code>）</li>
+    <li><strong>macOS / Linux 系统</strong>：<code>~/.hermes</code></li>
+  </ul>
+  <div class="callout callout-info">
+    <span class="label">提示</span>这是一个隐藏文件夹，你可以在文件管理器的地址栏直接输入路径访问。记忆和学习经验相关的核心文件，都存放在这个主目录下的 <code>memories</code> 文件夹中。
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果 <span class="verdict v-ok">整体：代码证实</span></div>
+    <ul>
+      <li class="ok">Windows 路径 <code>%LOCALAPPDATA%\hermes</code> 与 POSIX <code>~/.hermes</code> 由 <code>hermes_constants.py</code> 的 <code>_get_platform_default_hermes_home()</code> 实现：win32 优先读 <code>LOCALAPPDATA</code> 环境变量，无则回退 <code>Path.home()/"AppData"/"Local"</code>，再拼接 <code>hermes</code>；非 win32 为 <code>Path.home()/".hermes"</code>。</li>
+      <li class="add">源码补充：环境变量 <code>HERMES_HOME</code> 可覆盖默认根目录（<code>hermes_constants.py</code> 同文件支持）。</li>
+    </ul>
+  </div>
+
+  <h3 id="sec2-2">2.2 ~/.hermes/ 完整目录树</h3>
+  <div class="tree">
+    <div class="tree-row root-row">
+      <span class="t-name">📁 <span class="dir">~/.hermes/</span></span>
+      <span class="t-desc"><b style="color:var(--text)">默认 Profile 根目录</b>（Windows：<code>%LOCALAPPDATA%\hermes</code>）</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">├── </span>📄 <span class="hl">SOUL.md</span><span class="cat cat-personality">人格</span></span>
+      <span class="t-desc">核心身份与沟通风格定义文件</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">├── </span>📄 <span class="hl">config.yaml</span><span class="cat cat-config">配置</span></span>
+      <span class="t-desc">主配置文件（模型、API 密钥等）</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">├── </span>📄 <span class="hl">.env</span><span class="cat cat-config">配置</span></span>
+      <span class="t-desc">存放敏感信息（如 API 密钥）</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">├── </span>📄 <span class="hl">state.db</span><span class="cat cat-session">会话</span></span>
+      <span class="t-desc">所有会话历史的 SQLite 数据库</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">├── </span>📁 <span class="dir">memories/</span><span class="cat cat-memory">记忆</span></span>
+      <span class="t-desc">长期记忆文件夹</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">│   ├── </span>📄 <span class="hl">MEMORY.md</span><span class="cat cat-memory">记忆</span></span>
+      <span class="t-desc">记录环境、项目等事实（上限 <b style="color:var(--text)">2,200 字符</b>）</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">│   └── </span>📄 <span class="hl">USER.md</span><span class="cat cat-memory">记忆</span></span>
+      <span class="t-desc">记录用户偏好（上限 <b style="color:var(--text)">1,375 字符</b>）</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">├── </span>📁 <span class="dir">skills/</span><span class="cat cat-skill">技能</span></span>
+      <span class="t-desc">存放通过学习生成的技能文件</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">│   └── </span>📄 <span class="f">SKILL.md</span><span class="cat cat-skill">技能</span></span>
+      <span class="t-desc">任务完成后通过 <code>/learn</code> 沉淀的技能文件</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">├── </span>📁 <span class="dir">workspace/</span><span class="cat cat-config">工作区</span></span>
+      <span class="t-desc">存放项目相关文件</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">│   └── </span>📁 <span class="dir">[你的项目文件夹]/</span></span>
+      <span class="t-desc">创建项目时指定的工作区文件夹</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">│       └── </span>📄 <span class="hl">IDEA.md</span><span class="cat cat-project">项目</span></span>
+      <span class="t-desc">记录项目"想法"的文件</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">├── </span>📁 <span class="dir">profiles/</span><span class="cat cat-profile">分身</span></span>
+      <span class="t-desc">存放所有自定义 Profile 的文件夹</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">│   └── </span>📁 <span class="dir">my-profile/</span></span>
+      <span class="t-desc">一个名为 "my-profile" 的自定义 Profile 示例</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">│       ├── </span>📄 <span class="f">SOUL.md</span></span>
+      <span class="t-desc">该分身独立的人格文件</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">│       ├── </span>📄 <span class="f">config.yaml / .env / state.db</span></span>
+      <span class="t-desc">该分身独立的配置与数据库</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">│       ├── </span>📁 <span class="dir">memories/</span></span>
+      <span class="t-desc">该分身独立的 MEMORY.md + USER.md</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">│       └── </span>📁 <span class="dir">skills/</span></span>
+      <span class="t-desc">该分身独立的技能文件夹</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">├── </span>📁 <span class="dir">transcripts/</span><span class="cat cat-session">记录</span></span>
+      <span class="t-desc">存放对话记录</span>
+    </div>
+    <div class="tree-row">
+      <span class="t-name"><span class="tc">└── </span>📁 <span class="dir">logs/</span><span class="cat cat-session">日志</span></span>
+      <span class="t-desc">存放日志文件</span>
+    </div>
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果 <span class="verdict v-mix">混合：多数证实，2 处证伪 / 2 处无支撑</span></div>
+    <ul>
+      <li class="ok"><code>SOUL.md</code>：根目录读取逻辑见 <code>agent/prompt_builder.py:2177-2210</code>（<code>_home / "SOUL.md"</code>）。</li>
+      <li class="ok"><code>config.yaml</code> / <code>.env</code>：均位于 hermes home（<code>hermes_cli/config.py</code>、doctor 检查 <code>.env</code> 中 MEM0_API_KEY 等）。</li>
+      <li class="ok"><code>state.db</code>：<code>hermes_state.py:348</code> — <code>DEFAULT_DB_PATH = get_hermes_home() / "state.db"</code>。</li>
+      <li class="ok"><code>memories/MEMORY.md</code>、<code>memories/USER.md</code>：<code>tools/memory_tool.py</code> 完整读写实现。</li>
+      <li class="ok"><code>skills/</code>：技能由 <code>skill_manage</code> 写入 hermes home 下 skills 目录（<code>agent/learn_prompt.py</code> 引导）。</li>
+      <li class="bad"><code>workspace/</code>：源码中<strong>不存在</strong> <code>~/.hermes/workspace/</code> 固定目录的定义。桌面版「项目」是<strong>关联任意本地文件夹</strong>模型（<code>apps/desktop/src/store/projects.ts</code> 的 <code>folders</code> / <code>primary_path</code> 字段），与 hermes home 下的 workspace/ 无关。</li>
+      <li class="warn"><code>IDEA.md</code>：写入位置是<strong>项目主文件夹</strong>（<code>projects.ts:728</code> — <code>writeDesktopFileText('.../IDEA.md')</code>），并非 hermes home 下的固定路径；将其画进 <code>~/.hermes/</code> 目录树具有误导性。</li>
+      <li class="ok"><code>profiles/&lt;name&gt;/</code> 多分身结构：<code>hermes_state.py:581-582</code>（<code>&lt;root&gt;/profiles/&lt;name&gt;/state.db</code>）、<code>hermes_cli/config.py:889</code>（命名 Profile 必须显式创建）、<code>hermes_constants.py</code> 的 active_profile 机制均证实。Profile 下拥有独立 SOUL.md、config.yaml、state.db、memories/。</li>
+      <li class="bad"><code>transcripts/</code>：语义证伪。源码中 transcripts 是<strong>delegated subagent（委派子代理）的实时转录目录</strong>（<code>tools/delegation_live_log.py:62</code> 注释明确 "profile-safe, never ~/.hermes"），并非「存放所有对话记录」——对话记录实际都在 <code>state.db</code>。</li>
+      <li class="ok"><code>logs/</code>：<code>hermes_logging.py:304</code> — <code>log_dir = home / "logs"</code>。</li>
+      <li class="add">目录树<strong>遗漏</strong>了实际存在的 <code>cron/</code> 目录：<code>cron/jobs.py:84</code> — <code>CRON_DIR = HERMES_DIR / "cron"</code>（含 jobs.json、output/、executions.db、notepad.db）。</li>
+    </ul>
+  </div>
+
+  <h3 id="sec2-3">2.3 MEMORY.md &mdash; 工作笔记本</h3>
+  <p>Hermes 的长期记忆和学习经验，主要就体现在 <code>~/.hermes/memories/</code> 文件夹下的两个 Markdown 文件里。它们共同构成了一个"会思考、会总结"的记忆系统。</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>属性</th><th>说明</th></tr>
+      <tr><td><strong>文件位置</strong></td><td><code>~/.hermes/memories/MEMORY.md</code></td></tr>
+      <tr><td><strong>作用</strong></td><td>记录<strong>环境事实、项目经验和工作约定</strong>。比如你项目的技术栈、常用的开发工具、以及解决过的具体问题</td></tr>
+      <tr><td><strong>类比</strong></td><td>"工作笔记本"</td></tr>
+      <tr><td><strong>字符上限</strong></td><td><strong>2,200 字符</strong>（约 800 tokens）</td></tr>
+      <tr><td><strong>典型条目数</strong></td><td>8-15 条</td></tr>
+      <tr><td><strong>管理方式</strong></td><td>由 Agent 通过 <code>memory</code> 工具自动管理（add / replace / remove），也可手动干预</td></tr>
+    </table>
+  </div>
+
+  <h3 id="sec2-4">2.4 USER.md &mdash; 用户档案</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>属性</th><th>说明</th></tr>
+      <tr><td><strong>文件位置</strong></td><td><code>~/.hermes/memories/USER.md</code></td></tr>
+      <tr><td><strong>作用</strong></td><td>记录<strong>你的个人偏好、沟通风格和习惯</strong>。比如你喜欢的回答风格、你的技术背景等</td></tr>
+      <tr><td><strong>类比</strong></td><td>"用户档案"</td></tr>
+      <tr><td><strong>字符上限</strong></td><td><strong>1,375 字符</strong>（约 500 tokens）</td></tr>
+      <tr><td><strong>典型条目数</strong></td><td>5-10 条</td></tr>
+      <tr><td><strong>管理方式</strong></td><td>由 Agent 通过 <code>memory</code> 工具自动管理，也可手动干预</td></tr>
+    </table>
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（2.3 / 2.4） <span class="verdict v-ok">整体：代码证实</span></div>
+    <ul>
+      <li class="ok">文件位置、2,200 / 1,375 字符上限、add/replace/remove 管理方式均由 <code>tools/memory_tool.py</code>（MemoryStore 构造参数与 ENTRY_DELIMITER 机制）和 <code>hermes_cli/config_defaults.py:1770-1771</code> 证实。</li>
+      <li class="warn">「典型条目数 8-15 条 / 5-10 条」：源码中<strong>无任何条目数常量或校验</strong>，只有字符上限；条目数是文档的经验性描述。属于可参考但非硬性约束。</li>
+      <li class="warn">「约 800 / 500 tokens」：<code>config_defaults.py:1770-1771</code> 注释原文为 "~800 tokens at 2.75 chars/token"，与手册一致，系换算估算而非独立常量。</li>
+    </ul>
+  </div>
+
+  <div class="callout callout-warn">
+    <span class="label">重要</span>这两个文件有<strong>严格的字符上限</strong>，这是刻意为之，目的是强制 AI 进行"信息筛选与压缩"，只保留最重要的知识，避免记忆变得臃肿无效。
+  </div>
+
+  <h3 id="sec2-5">2.5 其他相关文件夹</h3>
+  <p>除了核心的 <code>memories</code> 文件夹，<code>~/.hermes/</code> 目录下还有其他几个重要的文件夹：</p>
+  <ul>
+    <li><strong><code>config.yaml</code></strong>：主配置文件，包含模型、API 密钥等设置</li>
+    <li><strong><code>.env</code></strong>：存放 API 密钥等敏感信息</li>
+    <li><strong><code>skills/</code></strong>：存放通过学习生成的技能文件（<code>SKILL.md</code>）</li>
+    <li><strong><code>workspace/</code></strong>：用户工作区，用于存放希望 Agent 能随时访问的文档</li>
+    <li><strong><code>transcripts/</code></strong> 和 <strong><code>logs/</code></strong>：存放对话记录和日志文件</li>
+  </ul>
+  <div class="callout callout-info">
+    <span class="label">实操建议</span>要"摸清"Hermes 的记忆模块，核心就是理解 <code>~/.hermes/memories/</code> 下的 <code>MEMORY.md</code> 和 <code>USER.md</code> 这两个文件。你可以直接打开它们，查看或手动编辑里面的内容，这是理解 Hermes"记住"了你什么的最直接方式。
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（2.5） <span class="verdict v-mix">混合</span></div>
+    <ul>
+      <li class="ok">config.yaml / .env / skills/ / logs/：证实（同 2.2 排查）。</li>
+      <li class="bad">「workspace/：用户工作区」：源码无 <code>~/.hermes/workspace/</code> 目录定义，见 2.2 排查结论。</li>
+      <li class="bad">「transcripts/：存放对话记录」：证伪 —— transcripts 是子代理委派转录目录且不在 ~/.hermes 下；对话记录统一存于 <code>state.db</code>（<code>hermes_state.py:348</code>）。</li>
+      <li class="ok">「可直接手动编辑 MEMORY.md / USER.md」：证实 —— <code>tools/memory_tool.py</code> 的 <code>load_from_disk()</code> 每次新会话从磁盘重新读取，手动编辑下一会话即生效。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SEC 3 ==================== -->
+<section id="sec3">
+  <h2><span class="num">3</span>记忆是如何工作的<span class="source-tag source-deepseek">DeepSeek 对话</span></h2>
+
+  <h3>3.1 加载与生效</h3>
+  <p>每次开始新会话，Hermes 会读取 <code>MEMORY.md</code> 和 <code>USER.md</code> 的内容，像"快照"一样固定在本次对话的系统提示词中。</p>
+
+  <h3>3.2 "延迟生效"原则</h3>
+  <p>会话中，Hermes 通过 <code>/learn</code> 指令或 <code>memory</code> 工具修改记忆文件是<strong>实时保存</strong>的。但这些更改<strong>要等到下一次新会话开始时才会生效</strong>。这是为了保持对话的稳定性，避免上下文混乱。</p>
+
+  <h3>3.3 自我管理与学习</h3>
+  <p>当你完成一个任务后输入 <code>/learn</code>，Hermes 会将其提炼成一条新的技能或知识，存入 <code>~/.hermes/skills/</code> 文件夹的 <code>SKILL.md</code> 文件中。此外，Hermes 还会扫描项目目录下的 <code>.hermes.md</code>、<code>AGENTS.md</code> 等文件作为上下文。</p>
+
+  <h3>3.4 会话记录</h3>
+  <p>你与 Hermes 的所有聊天记录，都存储在 <code>~/.hermes/state.db</code> 这个 SQLite 数据库文件中。</p>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果 <span class="verdict v-mix">3 项证实，1 项证伪</span></div>
+    <ul>
+      <li class="ok"><strong>3.1 加载与生效</strong>：证实。会话开始由 <code>agent_init.py:1766</code>（<code>load_from_disk()</code>）加载，注入系统 prompt（<code>agent/system_prompt.py:745-754</code>）。</li>
+      <li class="ok"><strong>3.2 延迟生效</strong>：证实。写盘即时（memory_tool 每次 add/replace/remove 后保存），prompt 快照不变，下一会话重新加载。</li>
+      <li class="bad"><strong>3.3「通过 /learn 修改记忆文件」：证伪</strong>。<code>/learn</code> 的职责是<strong>生成 Skill</strong>（<code>agent/learn_prompt.py:1-27</code> 模块 docstring：把用户描述提炼成可复用技能，经 <code>skill_manage</code> 写入 skills 目录），<strong>不写 MEMORY.md / USER.md</strong>。记忆更新只经 <code>memory</code> 工具。</li>
+      <li class="ok"><strong>3.3 扫描 .hermes.md / AGENTS.md</strong>：证实。上下文文件清单含 SOUL.md、.hermes.md、AGENTS.md、CLAUDE.md、.cursorrules（<code>agent/agent_init.py:613</code>、<code>agent/prompt_builder.py:2130</code>）。</li>
+      <li class="ok"><strong>3.4 state.db</strong>：证实（<code>hermes_state.py:348</code>）。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SEC 4 ==================== -->
+<section id="sec4">
+  <h2><span class="num">4</span>记忆在系统 Prompt 中的呈现方式<span class="source-tag source-official">官方文档</span></h2>
+  <p>每次会话开始时，记忆条目从磁盘加载，以<strong>冻结块</strong>的形式渲染到系统 prompt 中：</p>
+
+  <pre><code>══════════════════════════════════════════════
+MEMORY (your personal notes) [67% — 1,474/2,200 chars]
+══════════════════════════════════════════════
+
+User's project is a Rust web service at ~/code/myapi using Axum + SQLx
+
+§
+
+This machine runs Ubuntu 22.04, has Docker and Podman installed
+
+§
+
+User prefers concise responses, dislikes verbose explanations</code></pre>
+
+  <p>格式说明：</p>
+  <ul>
+    <li><strong>标头</strong>：显示存储类型（MEMORY 或 USER PROFILE）</li>
+    <li><strong>使用百分比和字符计数</strong>：让 Agent 了解当前容量使用情况</li>
+    <li><strong>条目分隔符</strong>：以 <code>§</code>（节符）分隔各条目</li>
+    <li><strong>多行支持</strong>：条目可以是多行文本</li>
+  </ul>
+
+  <div class="callout callout-info">
+    <span class="label">冻结快照模式</span>系统 prompt 注入在会话开始时捕获一次，会话中途不会改变。这是有意为之 &mdash; 目的是保留 LLM 的前缀缓存以提升性能。当 Agent 在会话期间添加或删除记忆条目时，更改会<strong>立即持久化到磁盘</strong>，但要到下一次会话开始时才会出现在系统 prompt 中。工具响应始终显示实时状态。
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果 <span class="verdict v-ok">整体：代码证实</span></div>
+    <ul>
+      <li class="ok">标头格式 <code>MEMORY (your personal notes) [67% &mdash; 1,474/2,200 chars]</code> 与 <code>USER PROFILE (who the user is)</code>：<code>tools/memory_tool.py</code> 的 <code>format_for_system_prompt()</code> 逐字实现，含百分比与字符计数。</li>
+      <li class="ok">条目分隔符 <code>§</code>（节符）：代码常量 <code>ENTRY_DELIMITER = "\n§\n"</code>（<code>tools/memory_tool.py</code>）。</li>
+      <li class="ok"><code>═</code>×46 分隔线、多行条目支持：同上文件证实。</li>
+      <li class="ok">冻结快照说明：与 <code>agent/system_prompt.py</code> 的缓存设计注释一致（stable/volatile 分层，memory 位于 volatile 段但仅随 prompt 重建刷新）。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SEC 5 ==================== -->
+<section id="sec5">
+  <h2><span class="num">5</span>Memory 工具操作<span class="source-tag source-official">官方文档</span></h2>
+
+  <h3 id="sec5-1">5.1 三种操作：add / replace / remove</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>操作</th><th>功能</th><th>示例</th></tr>
+      <tr>
+        <td><span class="badge badge-blue">add</span></td>
+        <td>添加新的记忆条目</td>
+        <td><code>memory(action="add", target="memory", content="...")</code></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-green">replace</span></td>
+        <td>用更新内容替换现有条目（子字符串匹配）</td>
+        <td><code>memory(action="replace", target="memory", old_text="...", content="...")</code></td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-red">remove</span></td>
+        <td>删除不再相关的条目（子字符串匹配）</td>
+        <td><code>memory(action="remove", target="memory", old_text="...")</code></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="callout callout-info">
+    <span class="label">注意</span>没有 <code>read</code> 操作。记忆内容在会话开始时自动注入系统 prompt，Agent 将其作为对话上下文的一部分来查看。
+  </div>
+
+  <pre><code># 添加环境事实到 memory
+memory(action="add", target="memory",
+       content="This machine runs Ubuntu 22.04, has Docker and Podman installed")
+
+# 添加用户偏好到 user
+memory(action="add", target="user",
+       content="User prefers concise responses, dislikes verbose explanations")
+
+# 如果记忆中包含 "User prefers dark mode in all editors"
+memory(action="replace", target="memory",
+       old_text="dark mode",
+       content="User prefers light mode in VS Code, dark mode in terminal")
+
+# 删除包含特定子字符串的条目
+memory(action="remove", target="memory",
+       old_text="staging server SSH port")</code></pre>
+
+  <h3 id="sec5-2">5.2 子字符串匹配机制</h3>
+  <p><code>replace</code> 和 <code>remove</code> 操作使用<strong>简短的唯一子字符串匹配</strong> &mdash; 不需要完整的条目文本。<code>old_text</code> 参数只需是能唯一标识某一条目的子字符串即可。</p>
+  <div class="callout callout-danger">
+    <span class="label">错误处理</span>如果子字符串匹配到多个条目，则返回错误，要求提供更具体的匹配内容。
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（第 5 章） <span class="verdict v-ok">整体：代码证实</span></div>
+    <ul>
+      <li class="ok">add / replace / remove 三操作及参数签名（<code>action</code> / <code>target</code> / <code>content</code> / <code>old_text</code>）：<code>tools/memory_tool.py</code> 工具 schema 完整定义。</li>
+      <li class="ok">「没有 read 操作」：证实。工具 schema 中无 read action，内容靠系统 prompt 注入。</li>
+      <li class="ok">子字符串唯一匹配、多匹配返回错误：证实（匹配计数 &gt;1 时报错并提示提供更具体的子串）。</li>
+      <li class="add">源码新发现：工具还接受<strong>批量操作参数</strong>（batch add/replace/remove），一次调用处理多条，手册此前未记载。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SEC 6 ==================== -->
+<section id="sec6">
+  <h2><span class="num">6</span>两个记忆目标说明（memory vs user）<span class="source-tag source-official">官方文档</span></h2>
+
+  <h3>6.1 <code>memory</code> &mdash; Agent 的个人笔记</h3>
+  <p>用于 Agent 需要记住的环境、工作流及经验教训相关信息：</p>
+  <ul>
+    <li><strong>环境事实</strong>：操作系统、工具、项目结构</li>
+    <li><strong>项目约定和配置</strong>：代码风格、测试命令、CI 配置</li>
+    <li><strong>工具怪癖与变通方法</strong>：发现的非标准行为及解决方案</li>
+    <li><strong>已完成任务的日记条目</strong>：如"2026-01-15 将数据库从 MySQL 迁移到 PostgreSQL"</li>
+    <li><strong>有效的技能和技术</strong>：验证过的工具用法</li>
+  </ul>
+
+  <h3>6.2 <code>user</code> &mdash; 用户档案</h3>
+  <p>用于记录用户的身份、偏好和沟通风格：</p>
+  <ul>
+    <li><strong>姓名、角色、时区</strong></li>
+    <li><strong>沟通偏好</strong>：简洁 vs 详细、格式偏好</li>
+    <li><strong>反感的事项和需要避免的内容</strong></li>
+    <li><strong>工作流习惯</strong></li>
+    <li><strong>技术水平</strong></li>
+  </ul>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（第 6 章） <span class="verdict v-ok">整体：代码证实</span></div>
+    <ul>
+      <li class="ok">memory / user 两目标的职责划分（环境事实、项目约定 vs 用户身份、偏好、沟通风格）：<code>tools/memory_tool.py</code> 工具描述与内嵌指导文本逐条对应实现，第 6 章清单即来自该指导文本的汉化。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SEC 7 ==================== -->
+<section id="sec7">
+  <h2><span class="num">7</span>什么该保存，什么该跳过<span class="source-tag source-official">官方文档</span></h2>
+
+  <h3>7.1 主动保存这些内容</h3>
+  <p>Agent 会自动保存 &mdash; 无需用户主动要求。当它学到以下内容时会保存：</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>类型</th><th>示例</th><th>保存目标</th></tr>
+      <tr><td><span class="badge badge-blue">用户偏好</span></td><td>"我更喜欢 TypeScript 而非 JavaScript"</td><td><code>user</code></td></tr>
+      <tr><td><span class="badge badge-green">环境事实</span></td><td>"此服务器运行 Debian 12，安装了 PostgreSQL 16"</td><td><code>memory</code></td></tr>
+      <tr><td><span class="badge badge-orange">纠正信息</span></td><td>"Docker 命令不要用 <code>sudo</code>，用户已在 docker 组中"</td><td><code>memory</code></td></tr>
+      <tr><td><span class="badge badge-green">约定</span></td><td>"项目使用 tab 缩进、120 字符行宽、Google 风格 docstring"</td><td><code>memory</code></td></tr>
+      <tr><td><span class="badge badge-blue">已完成的工作</span></td><td>"2026-01-15 将数据库从 MySQL 迁移到 PostgreSQL"</td><td><code>memory</code></td></tr>
+      <tr><td><span class="badge badge-orange">明确请求</span></td><td>"记住我的 API 密钥每月轮换一次"</td><td><code>memory</code></td></tr>
+    </table>
+  </div>
+
+  <h3>7.2 跳过这些内容</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>跳过类型</th><th>示例与原因</th></tr>
+      <tr><td><span class="badge badge-red">琐碎/显而易见</span></td><td>"用户询问了 Python" &mdash; 太模糊，没有实用价值</td></tr>
+      <tr><td><span class="badge badge-red">容易重新发现</span></td><td>"Python 3.12 支持 f-string 嵌套" &mdash; 可以网络搜索</td></tr>
+      <tr><td><span class="badge badge-red">原始数据转储</span></td><td>大型代码块、日志文件、数据表 &mdash; 对记忆来说太大</td></tr>
+      <tr><td><span class="badge badge-red">会话临时内容</span></td><td>临时文件路径、一次性调试上下文</td></tr>
+      <tr><td><span class="badge badge-red">已在上下文文件中</span></td><td>SOUL.md 和 AGENTS.md 的内容 &mdash; 不重复保存</td></tr>
+    </table>
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（第 7 章） <span class="verdict v-ok">整体：代码证实</span></div>
+    <ul>
+      <li class="ok">「主动保存」与「跳过」两清单均来自 <code>tools/memory_tool.py</code> 的内嵌指导文本（约 1194 行附近明确写有 "completed-work logs, temporary TODO state (use session_search for those). Reusable…"），即该清单是注入给 Agent 的行为规范，有代码载体。</li>
+      <li class="ok">「已在 SOUL.md / AGENTS.md 中的内容不重复保存」：与上下文文件加载机制（<code>agent/prompt_builder.py</code>）配套，指导文本确有此意。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SEC 8 ==================== -->
+<section id="sec8">
+  <h2><span class="num">8</span>容量管理与上限<span class="source-tag source-official">官方文档</span></h2>
+  <p>记忆有严格的字符上限，以保持系统 prompt 的有界性：</p>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>存储</th><th>上限</th><th>典型条目数</th><th>Token 估算</th></tr>
+      <tr><td><code>memory</code></td><td>2,200 字符</td><td>8-15 条</td><td>~800 tokens</td></tr>
+      <tr><td><code>user</code></td><td>1,375 字符</td><td>5-10 条</td><td>~500 tokens</td></tr>
+      <tr><td><strong>合计</strong></td><td><strong>3,575 字符</strong></td><td><strong>13-25 条</strong></td><td><strong>~1,300 tokens</strong></td></tr>
+    </table>
+  </div>
+
+  <h3>8.1 记忆已满时的处理</h3>
+  <p>当尝试添加会超出上限的条目时，工具返回错误：</p>
+  <pre><code>{
+  "success": false,
+  "error": "Memory at 2,100/2,200 chars. Adding this entry (250 chars) would exceed the limit. Replace or remove existing entries first.",
+  "current_entries": ["..."],
+  "usage": "2,100/2,200"
+}</code></pre>
+
+  <p>Agent 应当执行以下步骤：</p>
+  <ol>
+    <li>读取当前条目（显示在错误响应中）</li>
+    <li>识别可以删除或整合的条目</li>
+    <li>使用 <code>replace</code> 将相关条目合并为更简短的版本</li>
+    <li>然后 <code>add</code> 新条目</li>
+  </ol>
+
+  <div class="callout callout-success">
+    <span class="label">最佳实践</span>当记忆使用率超过 <strong>80%</strong>（在系统 prompt 标头中可见）时，在添加新条目之前先整合现有条目。例如，将三个独立的"项目使用 X"条目合并为一个综合性的项目描述条目。
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（第 8 章） <span class="verdict v-ok">整体：代码证实</span></div>
+    <ul>
+      <li class="ok">上限表（2,200 / 1,375 / 合计 3,575）：<code>hermes_cli/config_defaults.py:1770-1771</code> 与 <code>agent/agent_init.py:1763-1764</code> 双重证实。</li>
+      <li class="ok">超限错误 JSON（success:false + 错误消息 + current_entries + usage 字段）：<code>tools/memory_tool.py</code> 的 add 路径逐字段实现。</li>
+      <li class="warn">「80% 整合」：错误消息与指导文本中含容量意识引导，但 <strong>80% 阈值无代码常量</strong>，属官方文档的最佳实践建议。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SEC 9 ==================== -->
+<section id="sec9">
+  <h2><span class="num">9</span>重复防护与安全扫描<span class="source-tag source-official">官方文档</span></h2>
+
+  <h3>9.1 重复防护</h3>
+  <p>记忆系统会<strong>自动拒绝完全重复的条目</strong>。如果尝试添加已存在的内容，系统返回成功并附带"未添加重复项"的消息。</p>
+
+  <h3>9.2 安全扫描</h3>
+  <p>记忆条目在被接受之前会扫描<strong>注入和数据外泄模式</strong>，因为它们会被注入系统 prompt。以下内容将被拦截：</p>
+  <ul>
+    <li><span class="badge badge-red">威胁模式</span>：prompt 注入、凭据外泄、SSH 后门</li>
+    <li><span class="badge badge-red">不可见字符</span>：不可见 Unicode 字符</li>
+  </ul>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（第 9 章） <span class="verdict v-ok">整体：代码证实</span></div>
+    <ul>
+      <li class="ok">重复防护：证实。add 时对既有条目做重复检测，命中则返回成功并附 "Entry already exists (no duplicate added.)"（<code>tools/memory_tool.py</code>）。</li>
+      <li class="ok">安全扫描：证实。写入前经 threat_patterns 扫描（scope="strict"），覆盖 prompt 注入、凭据外泄、SSH 后门与不可见 Unicode 字符（<code>tools/memory_tool.py</code>）。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SEC 10 ==================== -->
+<section id="sec10">
+  <h2><span class="num">10</span>会话搜索 (session_search)<span class="source-tag source-official">官方文档</span></h2>
+  <p>除 MEMORY.md 和 USER.md 之外，Agent 还可以使用 <code>session_search</code> 工具搜索过去的对话：</p>
+  <ul>
+    <li>所有 CLI 和消息会话均存储在 SQLite（<code>~/.hermes/state.db</code>）中，支持 <strong>FTS5 全文搜索</strong></li>
+    <li>搜索查询返回数据库中的<strong>实际消息</strong> &mdash; 无 LLM 摘要，无截断</li>
+    <li>Agent 可以找到数周前讨论过的内容，即使它们不在活跃记忆中</li>
+    <li>Agent 还可以在找到的任意会话中向前或向后滚动</li>
+  </ul>
+
+  <pre><code>hermes sessions list    # 浏览过去的会话</code></pre>
+
+  <h3>10.1 session_search 与 memory 的对比</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>特性</th><th>持久化记忆 (MEMORY.md + USER.md)</th><th>会话搜索 (session_search)</th></tr>
+      <tr><td><strong>容量</strong></td><td>约 1,300 tokens 总计</td><td>无限制（所有会话）</td></tr>
+      <tr><td><strong>速度</strong></td><td>即时（在系统 prompt 中）</td><td>约 20ms FTS5 查询，约 1ms 滚动</td></tr>
+      <tr><td><strong>成本</strong></td><td>每次 prompt 均有 token 开销</td><td>免费 &mdash; 无 LLM 调用</td></tr>
+      <tr><td><strong>使用场景</strong></td><td>始终可用的关键事实</td><td>查找特定的过去对话</td></tr>
+      <tr><td><strong>管理方式</strong></td><td>由 Agent 手动整理</td><td>自动 &mdash; 所有会话均存储</td></tr>
+      <tr><td><strong>Token 开销</strong></td><td>每次会话固定（约 1,300 tokens）</td><td>按需（仅在搜索时产生）</td></tr>
+    </table>
+  </div>
+
+  <div class="callout callout-info">
+    <span class="label">使用原则</span><strong>记忆</strong>用于应始终在上下文中的关键事实。<strong>会话搜索</strong>用于"我们上周讨论过 X 吗？"这类需要 Agent 从过去对话中回忆具体内容的查询。
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（第 10 章） <span class="verdict v-ok">整体：代码证实</span></div>
+    <ul>
+      <li class="ok">session_search 基于 SQLite + FTS5：<code>tools/session_search_tool.py</code>（docstring: "All four modes operate on the SQLite session DB via the FTS5 index"），支持 discovery（FTS5 检索 + 按 session lineage 去重）、窗口滚动（±window 条消息，不走 FTS5）等四种模式。</li>
+      <li class="ok">「无 LLM 摘要、无截断、返回实际消息」：工具 schema 描述原文证实（"No LLM calls — every …"）。</li>
+      <li class="ok"><code>hermes sessions</code> 命令存在：<code>hermes_cli/commands.py:237</code> — CommandDef("sessions", "Browse and resume previous sessions")（CLI 内为 <code>/sessions</code> 斜杠命令）。</li>
+      <li class="warn">「约 20ms FTS5 查询、约 1ms 滚动」：属官方文档性能表述，源码中无对应基准常量。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SEC 11 ==================== -->
+<section id="sec11">
+  <h2><span class="num">11</span>配置 (config.yaml)<span class="source-tag source-official">官方文档</span></h2>
+  <p>记忆系统可在 <code>~/.hermes/config.yaml</code> 中进行配置：</p>
+  <pre><code># In ~/.hermes/config.yaml
+memory:
+  memory_enabled: true
+  user_profile_enabled: true
+  memory_char_limit: 2200   # ~800 tokens
+  user_char_limit: 1375     # ~500 tokens</code></pre>
+
+  <div class="table-wrap">
+    <table>
+      <tr><th>配置项</th><th>默认值</th><th>说明</th></tr>
+      <tr><td><code>memory_enabled</code></td><td><code>true</code></td><td>是否启用 MEMORY.md 记忆功能</td></tr>
+      <tr><td><code>user_profile_enabled</code></td><td><code>true</code></td><td>是否启用 USER.md 用户档案功能</td></tr>
+      <tr><td><code>memory_char_limit</code></td><td><code>2200</code></td><td>MEMORY.md 字符上限（约 800 tokens）</td></tr>
+      <tr><td><code>user_char_limit</code></td><td><code>1375</code></td><td>USER.md 字符上限（约 500 tokens）</td></tr>
+    </table>
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（第 11 章） <span class="verdict v-ok">整体：代码证实</span></div>
+    <ul>
+      <li class="ok">四个配置键全部存在：<code>agent/agent_init.py:1756-1766</code>（<code>mem_config.get("memory_enabled"…)</code> 等）与 <code>hermes_cli/config_defaults.py:1753-1777</code>（DEFAULT_CONFIG 的 memory 段）。</li>
+      <li class="ok">默认值 memory_enabled: true / user_profile_enabled: true：<code>config_defaults.py:1755-1756</code> 明确为 True（<code>agent_init.py</code> 中的 <code>.get(..., False)</code> 仅是缺键兜底，正常安装的 config 均有默认模板）。</li>
+      <li class="add">源码新发现：memory 段还有 <code>nudge_interval</code>（记忆提醒间隔，默认 10，<code>agent_init.py:1759</code>）、<code>write_approval</code>（写审批门，默认 false）、<code>provider</code>（外部记忆提供商，默认空串）三个键，手册未记载。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SEC 12 ==================== -->
+<section id="sec12">
+  <h2><span class="num">12</span>外部记忆提供商<span class="source-tag source-official">官方文档</span></h2>
+  <p>对于超出 MEMORY.md 和 USER.md 范围的更深层持久化记忆，Hermes 内置了 <strong>8 个外部记忆提供商插件</strong>：</p>
+  <ul>
+    <li>Honcho</li>
+    <li>OpenViking</li>
+    <li>Mem0</li>
+    <li>Hindsight</li>
+    <li>Holographic</li>
+    <li>RetainDB</li>
+    <li>ByteRover</li>
+    <li>Supermemory</li>
+  </ul>
+  <p>外部提供商与内置记忆<strong>并行运行</strong>（而非替代），增加了知识图谱、语义搜索、自动事实提取和跨会话用户建模等能力。</p>
+  <pre><code>hermes memory setup      # 选择并配置提供商
+hermes memory status     # 查看当前激活状态</code></pre>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（第 12 章） <span class="verdict v-ok">整体：代码证实</span></div>
+    <ul>
+      <li class="ok">8 个外部提供商<strong>全部存在</strong>：<code>plugins/memory/</code> 目录下恰有 honcho、openviking、mem0、hindsight、holographic、retaindb、byterover、supermemory 八个子包，与手册清单逐一对上。</li>
+      <li class="ok"><code>hermes memory setup</code> / <code>hermes memory status</code> 命令：<code>hermes_cli/memory_setup.py:1</code> 模块 docstring（"hermes memory setup|status — configure memory provider plugins"）；各提供商子包也实现 setup/status 接口（如 <code>plugins/memory/mem0/_setup.py:965</code>、<code>agent/memory_provider.py:333/355</code>）。</li>
+      <li class="ok">「并行运行（而非替代）」：<code>agent/agent_init.py:1772-1785</code> — 内置文件记忆 store 与外部 provider 同时初始化（注释 "external — one at a time, alongside built-in"）；<code>agent/memory_manager.py</code> 编排，系统 prompt 中两块叠加（<code>agent/system_prompt.py:756-761</code>）。</li>
+      <li class="add">源码补充：<code>config_defaults.py:1775</code> 明确 "Only ONE external provider is allowed at a time"；选择由 <code>memory.provider</code> 键驱动（<code>agent_init.py:1777</code>）。</li>
+    </ul>
+  </div>
+
+  <h3 id="sec12-1">12.1 桌面版「记忆与上下文」设置面板的运行机制</h3>
+  <p>设置 &rarr; 记忆与上下文（Memory &amp; Context）右侧的可编辑项，<strong>不是为每个插件手写的界面</strong>，而是一套声明式驱动的通用渲染体系：</p>
+  <ol>
+    <li><strong>提供商下拉框</strong>：读写 config.yaml 的 <code>memory.provider</code> 键。候选项由 <code>plugins/memory/__init__.py:247-258</code>（<code>list_memory_provider_names</code>）提供 —— 只做目录扫描 + pip entry-point 枚举，不执行任何插件代码。</li>
+    <li><strong>Connect 连接按钮</strong>（<code>apps/desktop/src/app/settings/memory/connect.tsx</code>）：OAuth 连接入口。能力探测是后端驱动的 —— 状态接口对没有 <code>oauth_flow</code> 模块的插件返回 404，前端据此不渲染任何内容。八个插件中<strong>仅 honcho 带 OAuth 模块</strong>（<code>plugins/memory/honcho/oauth.py</code>、<code>oauth_flow.py</code>）。</li>
+    <li><strong>配置字段面板</strong>（<code>apps/desktop/src/app/settings/memory/provider-config-panel.tsx</code>）：通用渲染器。字段来自各插件目录下的 <code>config_schema.py</code> 中声明的 <code>CONFIG_SCHEMA</code>（数据结构定义在 <code>plugins/memory/config_schema.py:43-107</code>）。声明即界面 —— 加一个提供商配置面板不需要写任何专属 UI 组件。</li>
+  </ol>
+  <div class="table-wrap">
+    <table>
+      <tr><th>插件</th><th>桌面设置面板</th><th>字段声明位置</th><th>面板字段（节选）</th></tr>
+      <tr><td>hindsight</td><td>有</td><td><code>plugins/memory/hindsight/config_schema.py</code></td><td>Mode（cloud/local）、API key、API URL、Bank ID 等 inline 字段 + 完整配置弹窗</td></tr>
+      <tr><td>honcho</td><td>有（字段最多）</td><td><code>plugins/memory/honcho/config_schema.py</code></td><td>apiKey、baseUrl、environment、workspace、peerName、aiPeer、sessionStrategy、timeout、pinUserPeer、runtimePeerPrefix、userPeerAliases(JSON)、sessionPeerPrefix 等 13+ 字段</td></tr>
+      <tr><td>其余 6 个（mem0 / openviking / retaindb / supermemory / byterover / holographic）</td><td>无（面板不渲染）</td><td>—</td><td>配置走 <code>hermes memory setup</code> CLI 向导（<code>get_config_schema()</code> 方法）或各插件自己的 env / JSON 文件</td></tr>
+      <tr><td>builtin</td><td>无（<code>config_schema.py:115-119</code>：无 schema 文件返回 None，"simply render no config panel"）</td><td>—</td><td>内置记忆配置在 config.yaml 的 memory 段（见第 11 章表格）</td></tr>
+    </table>
+  </div>
+  <div class="callout callout-info">
+    <span class="label">读写链路</span>非 secret 字段（text/select/bool/number/json）按插件的 storage 后端持久化（<code>STORAGE_FLAT_JSON</code> 存入各插件配置文件，honcho 另有 <code>STORAGE_HONCHO_HOST_BLOCK</code>）；secret 字段只写入 env store，API 永不回读明文，仅回显 <code>is_set</code> 标志（<code>plugins/memory/config_schema.py:56-67</code>）。面板采用单键局部 PUT 自动保存（<code>provider-config-panel.tsx:50-78</code>）。
+  </div>
+
+  <h3 id="sec12-2">12.2 插件统一生命周期（MemoryProvider ABC）</h3>
+  <p>所有插件实现同一个抽象基类 <code>MemoryProvider</code>（<code>agent/memory_provider.py:104-404</code>）。宿主 <code>MemoryManager</code>（<code>agent/memory_manager.py:365</code>，"The builtin provider is always first. Only one non-builtin (external) provider is allowed"）按下表时序调用：</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>钩子方法</th><th>调用时机</th><th>用途</th></tr>
+      <tr><td><code>initialize(session_id, **kwargs)</code></td><td>Agent 启动一次</td><td>建连接/建表/起后台线程；kwargs 携带 hermes_home、platform、agent_context（primary/subagent/cron/flush）、agent_identity、user_id 等（<code>memory_provider.py:123-144</code>）</td></tr>
+      <tr><td><code>system_prompt_block()</code></td><td>系统 prompt 组装时</td><td>注入静态说明块（各插件 "# XXX Memory Active..."）</td></tr>
+      <tr><td><code>prefetch(query)</code> / <code>queue_prefetch(query)</code></td><td>每次 LLM 调用前 / 每轮结束后</td><td>相关性召回并注入上下文；后台预取供下一轮消费</td></tr>
+      <tr><td><code>sync_turn(user, assistant)</code></td><td>每轮完成后</td><td>把本轮对话写入记忆后端（要求非阻塞）</td></tr>
+      <tr><td><code>get_tool_schemas()</code> / <code>handle_tool_call()</code></td><td>工具面组装 / 工具调用</td><td>向模型暴露插件专属工具</td></tr>
+      <tr><td><code>on_memory_write(action, target, content)</code></td><td>内置 memory 工具写盘时</td><td><strong>镜像钩子</strong>：把 MEMORY.md/USER.md 的 add/replace/remove 同步给外部后端 —— 这是内置与外部两套记忆的桥梁</td></tr>
+      <tr><td><code>on_session_end / on_session_switch / on_pre_compress / on_delegation / backup_paths</code></td><td>会话结束 / 切换 / 压缩前 / 子代理完成 / 备份时</td><td>会话级抽取、缓冲冲刷、压缩前抢救、外部目录纳入 <code>hermes backup</code></td></tr>
+    </table>
+  </div>
+  <ul>
+    <li><strong>发现顺序</strong>（<code>plugins/memory/__init__.py:1-20</code>，与通用插件管理器刻意相反）：<code>plugins/memory/&lt;name&gt;/</code>（bundled，优先）&rarr; <code>$HERMES_HOME/plugins/&lt;name&gt;/</code> &rarr; <code>./.hermes/plugins/</code>（需 <code>HERMES_ENABLE_PROJECT_PLUGINS</code>）&rarr; pip entry-point <code>hermes_agent.memory_providers</code>。</li>
+    <li><strong>琐碎输入门</strong>：<code>is_trivial_prompt()</code>（<code>memory_provider.py:75-101</code>）把 "hi / ok / thanks / /命令" 等无语义输入挡在召回之外，省一次阻塞式网络往返。</li>
+    <li><strong>写入门禁</strong>：kwargs 的 <code>agent_context</code> 为 cron/flush/subagent 时多数插件跳过写入，避免系统生成的 prompt 污染用户画像。</li>
+  </ul>
+
+  <h3 id="sec12-3">12.3 八个外部插件逐一解析（基于实际源码）</h3>
+
+  <h4>① Holographic —— 本地结构化事实库（纯离线）</h4>
+  <p><code>plugins/memory/holographic/</code>（<code>__init__.py</code> 462 行 + <code>store.py</code>/<code>retrieval.py</code>）。本地 SQLite（默认 <code>$HERMES_HOME/memory_store.db</code>）+ FTS5 关键词 + HRR（超维向量）组合检索，配置写在 config.yaml <code>plugins.hermes-memory-store</code> 段。</p>
+  <ul>
+    <li><strong>工具</strong>：<code>fact_store</code>（9 动作：add / search / probe 实体全量 / related 结构邻接 / reason 多实体组合推理 / contradict 矛盾检测 / update / remove / list）+ <code>fact_feedback</code>（helpful/unhelpful 反馈调节信任分）。</li>
+    <li><strong>写入</strong>：<code>sync_turn</code> 刻意为空（<code>__init__.py:220-223</code> "stores explicit facts via tools, not auto-sync"）；<code>on_session_end</code> 可选正则自动抽取（默认关，匹配 "I prefer.../we decided..." 等模式且带压缩摘要防污染护栏 <code>__init__.py:401-428</code>）；<code>on_memory_write</code> 仅镜像 add（user&rarr;user_pref 类别）。</li>
+    <li><strong>召回</strong>：<code>prefetch</code> 本地检索 top5（带信任分前缀）；<code>is_available()</code> 永远 True（SQLite 必在，numpy 可选）—— 八个插件中<strong>唯一零依赖、零网络</strong>的一个。</li>
+    <li><strong>独有</strong>：信任分体系（default_trust 0.5 / min 0.3 / feedback 动态调整 / temporal_decay_half_life 时间衰减）、矛盾检测、HRR 组合推理。</li>
+  </ul>
+
+  <h4>② Mem0 —— 服务端 LLM 事实抽取（三后端）</h4>
+  <p><code>plugins/memory/mem0/</code>（628 行 + <code>_backend.py</code>/<code>_oss_providers.py</code>/<code>__setup.py</code>）。三种后端：Platform 云 API（默认）/ 自托管 HTTP（MEM0_HOST）/ OSS 本地向量库，非 secret 配置存 <code>$HERMES_HOME/mem0.json</code>。</p>
+  <ul>
+    <li><strong>工具</strong>（4 个）：<code>mem0_search</code>（语义搜索，platform 模式可选 rerank 重排，top_k 上限 50）/ <code>mem0_add</code>（verbatim 原样存储，infer=False）/ <code>mem0_update</code> / <code>mem0_delete</code>。</li>
+    <li><strong>写入</strong>：<code>sync_turn</code> 每轮把对话发服务端做 <strong>LLM 自动事实抽取</strong>（infer=True，<code>__init__.py:493-499</code>），服务端自动去重合并 —— 手册第 12 章开头的 "server-side LLM fact extraction" 即此。</li>
+    <li><strong>召回</strong>：<code>on_turn_start</code> 起后台搜索线程，<code>prefetch</code> 热路径最多等 3 秒（<code>_PREFETCH_WAIT_SECS</code>），超时放弃注入、由 mem0_search 工具兜底。</li>
+    <li><strong>独有</strong>：<strong>熔断器</strong>（连续 5 次失败暂停调用 120 秒，<code>__init__.py:49-52</code>）；user_id 三级解析（配置值 &rarr; 网关原生 id &rarr; 占位符），实现同一人多网关记忆合并。</li>
+  </ul>
+
+  <h4>③ Honcho —— 辩证用户建模（唯一支持 OAuth）</h4>
+  <p><code>plugins/memory/honcho/</code>（1712 行 + client/session/oauth/oauth_flow/cli 模块）。Plastic Labs Honcho 云端服务，把用户与 AI 建模为两个 <strong>peer</strong>，跨会话用户画像。桌面设置面板字段最多的插件，且是<strong>唯一带 OAuth 授权流</strong>的插件。</p>
+  <ul>
+    <li><strong>工具</strong>（5 个）：<code>honcho_profile</code>（peer 卡片读写，无 LLM 最廉价）/ <code>honcho_search</code>（RRF 混合检索跨全部会话的原始消息摘录）/ <code>honcho_reasoning</code>（辩证代理合成答案，唯一跑 LLM 的工具，reasoning_level 五档 minimal&rarr;max）/ <code>honcho_context</code>（会话级站立快照：摘要+画像+卡片+近期消息）/ <code>honcho_conclude</code>（持久结论的写/删/列，删除仅限 PII 清除）。</li>
+    <li><strong>写入</strong>：<code>sync_turn</code> 分块（25k 字符上限）写入 Honcho session，经 <code>save()</code> 遵守 writeFrequency 批量刷新；<code>saveMessages: false</code> 是硬写入门禁（读写全关）；机器生成的网关通知（ASYNC COMPLETE 等正则 <code>__init__.py:37-49</code>）过滤不写入。</li>
+    <li><strong>召回</strong>：<code>queue_prefetch</code> 后台辩证推理多 pass 递进（<code>_run_dialectic_depth</code>），下一轮 <code>prefetch</code> 消费。</li>
+    <li><strong>镜像</strong>：<code>on_memory_write</code> 只镜像 <code>target="user"</code> 的 add 为 conclusion（<code>__init__.py:1478</code>）—— 八个插件中镜像策略最保守。</li>
+  </ul>
+
+  <h4>④ Hindsight —— 知识图谱 + 实体解析（云/本地双模）</h4>
+  <p><code>plugins/memory/hindsight/</code>（2440 行 + templates.py，八插件中第二复杂）。cloud 模式走 vectorize.io API；local 模式<strong>内嵌 daemon</strong>（localhost:8888，闲置 300 秒自动关闭、健康探测 + 卡死重启护栏）。</p>
+  <ul>
+    <li><strong>工具</strong>（3 个）：<code>hindsight_retain</code>（存储并自动抽取结构化事实、解析实体、建图索引，支持 tags）/ <code>hindsight_recall</code>（多策略检索：语义+关键词+实体图遍历+重排）/ <code>hindsight_reflect</code>（跨全部记忆的推理合成）。</li>
+    <li><strong>写入</strong>：<code>sync_turn</code> 后台 writer 队列 retain（每轮一个 document，0.5.0+ 用 update_mode=append 追加语义）；<code>on_session_switch</code> 冲刷缓冲。</li>
+    <li><strong>召回</strong>：budget 三档（low/mid/high，HINDSIGHT_BUDGET）控制召回预算；<code>recall_status()</code> 返回品牌指示器 <strong>👁️</strong>（<code>_HINDSIGHT_GLYPH</code>，确定性 UI 指示不依赖模型口播）。</li>
+    <li><strong>独有</strong>：<strong>bank（记忆库）+ bank 模板</strong>体系 —— setup 向导可从 GitHub 模板目录（<code>templates.py</code>）拉取预置抽取模板应用到 bank；RETAIN_TAGS / 观察域（per_tag/combined/all_combinations）控制保留记忆的观察范围。</li>
+  </ul>
+
+  <h4>⑤ OpenViking —— 文件系统式知识库（最大插件）</h4>
+  <p><code>plugins/memory/openviking/</code>（5243 行）。Volcengine（字节跳动）上下文数据库：把知识组织为<strong>文件系统层级</strong>，用 <code>viking://</code> URI 寻址。默认本地服务 127.0.0.1:1933（可自动拉起、健康探测、身份校验），也可连云端。</p>
+  <ul>
+    <li><strong>工具</strong>（6 个）：<code>viking_search</code>（fast/deep 双模式 + scope 前缀限定）/ <code>viking_read</code>（<strong>三级详情</strong>：abstract ≈100 tok（L0）/ overview ≈2k（L1）/ full（L2），批量最多 3 个 URI）/ <code>viking_browse</code>（tree/list/stat 像文件管理器一样浏览记忆库）/ <code>viking_remember</code>（5 类别：preference/entity/event/case/pattern，各落对应 viking:// 子目录）/ <code>viking_forget</code>（仅精确 .md 记忆文件 URI，目录与生成摘要拒绝删除）/ <code>viking_add_resource</code>（摄取 URL/git/本地文件并自动解析索引）。</li>
+    <li><strong>写入</strong>：<code>sync_turn</code> 批量（每 100 条）提交 session，<strong>session commit 时服务端自动做 6 类记忆抽取</strong>；崩溃恢复：pending_sessions 目录 + run lock 保证未提交会话重启后补交。</li>
+    <li><strong>召回</strong>：<code>prefetch</code> 限时 4 秒的搜索 + 分层读取，注入内容上限 4000 字符（<code>_DEFAULT_RECALL_MAX_INJECTED_CHARS</code>）。</li>
+    <li><strong>镜像</strong>：<code>on_memory_write</code> 按 target 映射子目录（user&rarr;preferences，memory&rarr;patterns）。</li>
+  </ul>
+
+  <h4>⑥ RetainDB —— 云记忆 API + 共享文件商店（工具最多）</h4>
+  <p><code>plugins/memory/retaindb/</code>（860 行）。RetainDB 云 API（api.retaindb.com），项目隔离（未配置时自动用 <code>hermes-&lt;profile&gt;</code> 项目名）。</p>
+  <ul>
+    <li><strong>工具</strong>（10 个，八插件中最多）：记忆侧 5 个 —— <code>retaindb_profile</code>（稳定画像）/ <code>retaindb_search</code> / <code>retaindb_context</code>（任务合成上下文 + 去重 overlay）/ <code>retaindb_remember</code>（7 种 memory_type + importance 0&ndash;1 权重）/ <code>retaindb_forget</code>；<strong>文件商店</strong>侧 5 个 —— <code>retaindb_upload_file</code>（返回 rdb:// URI）/ list / read / ingest（切块嵌入抽取）/ delete。</li>
+    <li><strong>写入</strong>：<code>sync_turn</code> 入 <strong>SQLite 持久写队列</strong>（<code>retaindb_queue.db</code>，<code>_WriteQueue</code> 类）—— 崩溃后重启自动重放未送达行，八插件中唯一带<strong>崩溃安全写队列</strong>的。</li>
+    <li><strong>召回</strong>：<code>queue_prefetch</code> 三线程并行预取：context 查询 + <strong>dialectic 用户综合</strong>（按查询长度自动调 reasoning_level low/medium/high）+ <strong>agent self-model</strong>（persona/persistent_instructions/working_style）。</li>
+    <li><strong>独有</strong>：<code>initialize</code> 时后台把 <strong>SOUL.md 上传种子</strong>给服务端（<code>seed_agent_identity</code>，source="soul_md"，<code>__init__.py:596-612</code>）—— 唯一把人格文件喂给记忆后端的插件。</li>
+  </ul>
+
+  <h4>⑦ Supermemory —— 会话文档化摄取 + 容器隔离</h4>
+  <p><code>plugins/memory/supermemory/</code>（1053 行）。云 API（api.supermemory.ai，支持自托管），配置存 <code>$HERMES_HOME/supermemory.json</code>。</p>
+  <ul>
+    <li><strong>容器体系</strong>：container_tag 隔离（默认 "hermes"），支持 <code>{identity}</code> 模板实现 <strong>profile 级容器</strong>，可开多容器模式（工具可带 container_tag 参数定向读写）。</li>
+    <li><strong>工具</strong>（4 个）：<code>supermemory_store</code> / <code>supermemory_search</code> / <code>supermemory_forget</code>（按精确 id <em>或</em>按最佳匹配查询删除）/ <code>supermemory_profile</code>（kebab-case 别名兼容）。</li>
+    <li><strong>写入</strong>：<code>sync_turn</code> <strong>只缓冲</strong>清洗后的轮次（剥离已注入的上下文标签），<code>on_session_end</code>/<code>on_session_switch</code> 时<strong>一次性 ingest 整个会话为一个文档</strong> —— 与其他插件每轮即写不同，走"会话文档化"路线。</li>
+    <li><strong>召回</strong>：<code>prefetch</code> 拉取三段（static 持久画像 + dynamic 近期上下文 + 搜索结果）去重后注入；画像段仅首轮与每 profile_frequency（默认 50）轮注入一次。</li>
+    <li><strong>独有</strong>：<code>entity_context</code> 可自定义"存什么/不存什么"的抽取指令（默认提示词强调 "When in doubt, store less"，上限 1500 字符）。</li>
+  </ul>
+
+  <h4>⑧ ByteRover —— 外部 CLI 知识树（最轻实现）</h4>
+  <p><code>plugins/memory/byterover/</code>（449 行，八插件中最小）。<strong>不自带任何存储/检索实现</strong>，完全通过子进程调用外部 <code>brv</code> CLI（npm 安装），由 ByteRover 自己的 LLM 维护层级知识树，工作目录 <code>$HERMES_HOME/byterover/</code>，本地优先 + 可选云同步（BRV_API_KEY）。</p>
+  <ul>
+    <li><strong>工具</strong>（3 个）：<code>brv_query</code>（查树，10 秒超时）/ <code>brv_curate</code>（存入，ByteRover LLM 自动归类组织，120 秒超时）/ <code>brv_status</code>。</li>
+    <li><strong>写入</strong>：<code>sync_turn</code> 后台 curate 整轮对话（auto_extract 可关）；<code>on_pre_compress</code> 在上下文压缩丢弃前把最后 10 条消息抢救性 curate（八插件中<strong>唯一实现压缩前抢救</strong>的）。</li>
+    <li><strong>召回</strong>：<code>prefetch</code> 同步阻塞查询（与其他插件后台预取不同），注入 "## ByteRover Context"。</li>
+    <li><strong>独有</strong>：唯一依赖外部二进制的插件；<code>is_available()</code> 只探测 brv 是否在 PATH。</li>
+  </ul>
+
+  <h3 id="sec12-4">12.4 内置记忆 vs 外部插件：代码逻辑对比</h3>
+  <p>先明确一个关键事实：<strong>外部插件不替代内置记忆</strong>。<code>agent/agent_init.py:1740-1768</code> 先无条件创建内置 MemoryStore（MEMORY.md/USER.md），<code>:1772-1785</code> 再按 <code>memory.provider</code> 叠加一个外部 provider；<code>memory_manager.py:365-367</code> 注释原文 "The builtin provider is always first. Only one non-builtin (external) provider is allowed"。两套记忆通过 <code>on_memory_write</code> 镜像钩子互通。</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>对比维度</th><th>内置记忆（builtin）</th><th>外部插件（8 个）</th></tr>
+      <tr><td>存储介质</td><td>纯文本 Markdown：<code>~/.hermes/memories/MEMORY.md</code> + <code>USER.md</code>（<code>tools/memory_tool.py</code>）</td><td>各自后端：SQLite（holographic）、云 API（mem0/honcho/retaindb/supermemory/hindsight-cloud）、文件系统知识库（openviking）、外部 CLI 知识树（byterover）</td></tr>
+      <tr><td>容量控制</td><td><strong>硬上限</strong> 2200 / 1375 字符，超限报错拒绝写入，强制模型压缩取舍</td><td>无统一上限；召回侧各设注入预算（openviking 4000 字符、hindsight budget 三档、honcho token 截断）</td></tr>
+      <tr><td>写入触发</td><td><strong>仅模型显式调用</strong> memory 工具（add/replace/remove），无自动写入</td><td><code>sync_turn</code> 每轮自动写（supermemory 缓冲至会话结束）+ 显式工具 + <code>on_memory_write</code> 镜像</td></tr>
+      <tr><td>写入方式</td><td>子串精确匹配编辑 + 重复拒绝 + 安全扫描（threat_patterns）</td><td>LLM 服务端抽取去重（mem0）、实体解析建图（hindsight）、自动归类（byterover/openviking 6 类）</td></tr>
+      <tr><td>上下文注入</td><td><strong>全量</strong>注入系统 prompt（冻结快照，每会话开始一次，前缀缓存友好）</td><td><strong>按相关性</strong>每轮 prefetch 动态注入（多数后台预取，byterover 同步阻塞、mem0 限时 3 秒）</td></tr>
+      <tr><td>检索能力</td><td>无检索 —— 要么在 prompt 里要么不在</td><td>语义搜索（全部）、混合 RRF（honcho）、图遍历（hindsight）、多实体组合推理（holographic reason）、三级分层读取（openviking L0/L1/L2）</td></tr>
+      <tr><td>离线可用</td><td>是（纯本地文件）</td><td>仅 holographic（SQLite 零依赖）与 hindsight / openviking 的 local 模式；其余需网络或外部 CLI</td></tr>
+      <tr><td>暴露工具数</td><td>1（memory，三操作合一）</td><td>3&ndash;10 个（byterover 3 / hindsight 3 / supermemory 4 / mem0 4 / honcho 5 / openviking 6 / holographic 2 / retaindb 10）</td></tr>
+      <tr><td>安全护栏</td><td>安全扫描 + 重复拒绝 + 字符上限 + 写审批门（write_approval）</td><td>各插件自设：写入门禁 saveMessages（honcho）、熔断器（mem0）、机器通知过滤（honcho）、琐碎输入门（框架级）、subagent/cron 上下文跳写（框架级 + 插件级）</td></tr>
+      <tr><td>与内置互通</td><td>—</td><td><code>on_memory_write</code> 镜像：honcho 仅镜像 user 档案写入；holographic 仅镜像 add；mem0/supermemory 不实现该钩子；其余全量镜像</td></tr>
+    </table>
+  </div>
+  <p>八个插件之间的横向速查：</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>插件</th><th>部署形态</th><th>自动写入</th><th>独有能力</th><th>规模</th></tr>
+      <tr><td>holographic</td><td>纯本地 SQLite</td><td>否（显式事实 + 可选会话末正则抽取）</td><td>信任分 / 反馈训练 / 矛盾检测 / HRR 组合推理</td><td>462 行</td></tr>
+      <tr><td>mem0</td><td>云 / 自托管 / OSS 三模</td><td>每轮服务端 LLM 抽取</td><td>熔断器 / 跨网关 user_id 合并 / rerank</td><td>628 行</td></tr>
+      <tr><td>honcho</td><td>云（OAuth 或 API key）</td><td>每轮（writeFrequency 批量）</td><td>peer 用户建模 / 辩证推理五档 / OAuth / 桌面面板字段最多</td><td>1712 行</td></tr>
+      <tr><td>hindsight</td><td>云 / 内嵌本地 daemon</td><td>每轮 retain 队列</td><td>知识图谱 / 实体解析 / bank 模板 / 👁️ 召回指示器</td><td>2440 行</td></tr>
+      <tr><td>openviking</td><td>本地服务（自动拉起）/ 云</td><td>session commit 时 6 类抽取</td><td>viking:// 文件系统 / L0-L2 三级读取 / 资源摄取 / 崩溃恢复</td><td>5243 行</td></tr>
+      <tr><td>retaindb</td><td>云 API</td><td>每轮（SQLite 持久队列）</td><td>崩溃安全写队列 / dialectic 用户综合 / agent self-model / SOUL.md 种子 / 文件商店（10 工具）</td><td>860 行</td></tr>
+      <tr><td>supermemory</td><td>云（可自托管）</td><td>缓冲至会话结束整档摄取</td><td>容器隔离（{identity} profile 级）/ 多容器 / entity_context 自定义抽取指令</td><td>1053 行</td></tr>
+      <tr><td>byterover</td><td>外部 brv CLI</td><td>每轮 curate + 压缩前抢救</td><td>唯一外部 CLI 依赖 / LLM 自动归类知识树</td><td>449 行</td></tr>
+    </table>
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（12.1&ndash;12.4 新增小节） <span class="verdict v-ok">全部：代码证实</span></div>
+    <ul>
+      <li class="ok">12.1 设置面板机制：<code>apps/desktop/src/app/settings/config-settings.tsx:355-371</code>（MemoryConnect + ProviderConfigPanel 条件渲染）；<code>provider-config-panel.tsx:80-83</code>（无字段即不渲染）；<code>plugins/memory/config_schema.py:1-20</code>（声明式配置体系 docstring）；OAuth 仅 honcho：<code>plugins/memory/honcho/oauth.py</code>、<code>oauth_flow.py</code> 存在，其余七插件目录无 oauth 文件。</li>
+      <li class="ok">12.2 生命周期：<code>agent/memory_provider.py:104-404</code>（ABC 全部钩子与 docstring）；<code>plugins/memory/__init__.py:16-23</code>（bundled 优先的发现顺序与单提供商限制）；<code>memory_provider.py:75-101</code>（TRIVIAL_PROMPT_RE 琐碎输入门）。</li>
+      <li class="ok">12.3 八插件逐一核对其 <code>__init__.py</code>：holographic 462 行 / mem0 628 行 / honcho 1712 行 / hindsight 2440 行 / openviking 5243 行 / retaindb 860 行 / supermemory 1053 行 / byterover 449 行。工具 schema、写入与召回路径、独有特性均出自对应行号（正文已标注关键处）。</li>
+      <li class="ok">12.4 并存关系：<code>agent/agent_init.py:1740-1768</code>（内置 store 无条件创建，含 #65429 修复注释 "the built-in file-backed store"）与 <code>:1772-1785</code>（外部 provider 叠加加载）；<code>agent/memory_manager.py:365-367</code>（builtin 永远第一 + 至多一个外部）。</li>
+      <li class="add">源码新发现：工具计数 holographic 实为 <strong>2 个</strong>工具（fact_store 9 动作合一 + fact_feedback），正文速查表已按工具 schema 数而非动作数计。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SEC 13 ==================== -->
+<section id="sec13">
+  <h2><span class="num">13</span>桌面版配置逻辑与文件结构解析<span class="source-tag source-deepseek">DeepSeek 对话</span></h2>
+
+  <h3 id="sec13-1">13.1 核心概念总览（Profile &rarr; Session / Project）</h3>
+  <p>Hermes 桌面版的配置遵循一种 <strong>"配置档案 (Profile) &rarr; 会话 (Session) / 项目 (Project)"</strong> 的层级结构。你可以把它想象成一个多用户操作系统：</p>
+  <ul>
+    <li><strong>配置档案 (Profile)</strong> 就像是<strong>独立的用户账户</strong>。每个账户都有自己的桌面、文件、设置和应用程序。</li>
+    <li>在每个账户下，你可以开启不同的<strong>会话 (Session)</strong> 或创建<strong>项目 (Project)</strong>，它们就像是在这个账户下打开的<strong>不同任务窗口</strong>或<strong>工作区</strong>。</li>
+  </ul>
+  <p>这种设计的核心目的，是让你能为不同的工作场景（如编程、写作、研究）创建完全隔离且专用的 AI 助手分身。</p>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（13.1） <span class="verdict v-ok">整体：代码证实</span></div>
+    <ul>
+      <li class="ok">Profile &rarr; Session / Project 层级：profiles 机制（<code>hermes_state.py:581-582</code> 的 <code>&lt;root&gt;/profiles/&lt;name&gt;/state.db</code>、<code>hermes_constants.py</code> active_profile）、桌面版 Project/Session 模型（<code>apps/desktop/src/store/projects.ts</code>）均证实。</li>
+    </ul>
+  </div>
+
+  <h3 id="sec13-2">13.2 配置档案 (Profile) &mdash; 你的 AI "分身"</h3>
+  <h4>它是什么？</h4>
+  <p>配置档案是一个<strong>完全独立</strong>的 Hermes 运行环境。你可以把它理解为创建一个全新的 AI "分身"或"角色"。每个分身都拥有自己独立的：</p>
+  <ul>
+    <li><strong>身份与人格</strong>（<code>SOUL.md</code>）</li>
+    <li><strong>配置与密钥</strong>（<code>config.yaml</code>、<code>.env</code>）</li>
+    <li><strong>长期记忆</strong>（<code>memories/</code> 文件夹）</li>
+    <li><strong>技能</strong>（<code>skills/</code> 文件夹）</li>
+    <li><strong>会话历史</strong>（<code>sessions/</code> 数据库）</li>
+    <li><strong>定时任务</strong>（<code>cron/</code>）</li>
+  </ul>
+
+  <h4>它的作用？</h4>
+  <p>创建不同的 Profile 可以让你在一台电脑上运行多个互不干扰的 Agent。例如，你可以创建一个 <code>coder</code> Profile 专门用于编程，一个 <code>writer</code> Profile 专门用于写作。它们各自记住各自的上下文、API 密钥和偏好，不会互相混淆。</p>
+
+  <h4>它体现在哪个文件夹？</h4>
+  <p>默认的 Profile 被称为 <code>default</code>，其根目录位于：</p>
+  <ul>
+    <li><strong>Windows</strong>: <code>%LOCALAPPDATA%\hermes</code></li>
+    <li><strong>macOS/Linux</strong>: <code>~/.hermes</code></li>
+  </ul>
+  <p>当你通过设置界面或命令行（<code>hermes profile create &lt;name&gt;</code>）创建新的 Profile 时，系统会在默认根目录下创建一个名为 <code>profiles/&lt;你的配置档案名&gt;</code> 的新文件夹。</p>
+  <p><strong>例如</strong>，如果你创建了一个名为 <code>my-profile</code> 的配置档案，其完整路径将是：</p>
+  <ul>
+    <li><strong>Windows</strong>: <code>%LOCALAPPDATA%\hermes\profiles\my-profile\</code></li>
+    <li><strong>macOS/Linux</strong>: <code>~/.hermes/profiles/my-profile/</code></li>
+  </ul>
+  <div class="callout callout-info">
+    <span class="label">注意</span>"新建配置档案"界面正是用于创建这样一个全新的独立环境。其中，"克隆来源"选项允许你从现有 Profile（如 <code>default</code>）复制配置，快速生成一个新分身。
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（13.2） <span class="verdict v-mix">主体证实，1 处表述不准</span></div>
+    <ul>
+      <li class="ok">Profile 独立拥有 SOUL.md / config.yaml / .env / memories/ / skills/ / cron/：<code>hermes_cli/container_boot.py:174</code> 注释明确 "SOUL.md is always seeded by <code>hermes profile create</code>"；<code>cron/jobs.py:175-180</code> 每个独立 home 有自己的 cron 目录；<code>hermes_state.py</code> 每 Profile 有独立 state.db。</li>
+      <li class="ok"><code>hermes profile create &lt;name&gt;</code> 命令存在：<code>hermes_cli/doctor.py:636</code>、<code>hermes_cli/gateway.py:7477</code>、<code>hermes_cli/config.py:889</code>（"Named profiles must be created explicitly (e.g. <code>hermes profile create</code>)"）。</li>
+      <li class="warn">「会话历史（sessions/ 数据库）」：目录表述不准确 —— 实际是 Profile 根目录下的 <strong>state.db 单文件</strong>（<code>hermes_state.py:348</code>），不存在 sessions/ 目录。</li>
+    </ul>
+  </div>
+
+  <h3 id="sec13-3">13.3 人格 (Personality) 与 SOUL.md &mdash; 分身的"灵魂"</h3>
+  <h4>它是什么？</h4>
+  <p><code>SOUL.md</code> 是一个 Markdown 文件，它定义了你的 Hermes Agent 的<strong>核心身份、语气、沟通风格和价值观</strong>。它是系统提示词（System Prompt）中的<strong>第一项内容</strong>，直接决定了 AI "是谁"以及"如何回应"。</p>
+
+  <h4>它的作用？</h4>
+  <p>它就是你在"对话"模块中看到的"人格设定"。通过编辑 <code>SOUL.md</code>，你可以让 Hermes 从一个通用助手，转变为一个"务实的高级工程师"、"耐心的教师"或"严格的审阅者"。这种人格设定是<strong>持久化</strong>的，会应用于该 Profile 下的所有会话。</p>
+
+  <h4>它体现在哪个文件夹？</h4>
+  <p><code>SOUL.md</code> 文件位于每个 Profile 的根目录下：</p>
+  <ul>
+    <li><strong>默认 Profile</strong>:
+      <ul>
+        <li>Windows: <code>%LOCALAPPDATA%\hermes\SOUL.md</code></li>
+        <li>macOS/Linux: <code>~/.hermes/SOUL.md</code></li>
+      </ul>
+    </li>
+    <li><strong>自定义 Profile</strong>（例如 <code>my-profile</code>）:
+      <ul>
+        <li>Windows: <code>%LOCALAPPDATA%\hermes\profiles\my-profile\SOUL.md</code></li>
+        <li>macOS/Linux: <code>~/.hermes/profiles/my-profile/SOUL.md</code></li>
+      </ul>
+    </li>
+  </ul>
+  <div class="callout callout-info">
+    <span class="label">注意</span>"配置档案"设置页面的下半部分通常显示 <code>SOUL.md</code> 的内容预览，并提供"保存 SOUL.md"的按钮，这证实了 <code>SOUL.md</code> 是每个 Profile 的核心组成部分。
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（13.3） <span class="verdict v-mix">SOUL.md 证实；「人格=SOUL.md」证伪</span></div>
+    <ul>
+      <li class="ok">SOUL.md 位于 Profile 根目录、作为系统 prompt 的身份首项：<code>agent/prompt_builder.py:2177-2210</code>（读取 <code>_home/"SOUL.md"</code>）与 <code>agent/system_prompt.py:375-382</code>（"Try SOUL.md as primary identity"）证实。</li>
+      <li class="ok">人格持久化、应用于该 Profile 所有会话：概念正确（见 13.2 排查）。</li>
+      <li class="bad"><strong>「对话模块中设置的人格底层由 SOUL.md 驱动」：证伪</strong>。源码中人格选择的唯一持久化路径是 <code>hermes_cli/personality.py:163-177</code> 的 <code>persist_personality()</code> —— 将人格名原子写入 config.yaml 的 <strong><code>display.personality</code></strong> 键，docstring 明确 "Never touches <code>agent.system_prompt</code>"，更不写 SOUL.md。人格与 SOUL.md 是<strong>两套独立机制</strong>（详见第 14、15 章排查）。</li>
+    </ul>
+  </div>
+
+  <h3 id="sec13-4">13.4 记忆与上下文 (Memory &amp; Context) &mdash; 分身的"长期经验"</h3>
+  <h4>它是什么？</h4>
+  <p>这是 Hermes 跨会话保持"学习经验"和"长期记忆"的机制。它主要由两个文件构成：</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>文件</th><th>用途</th><th>字符上限</th><th>类比</th></tr>
+      <tr><td><strong><code>MEMORY.md</code></strong></td><td>记录环境事实、项目约定、已学到的解决方案等</td><td>2,200 字符</td><td>"工作笔记本"</td></tr>
+      <tr><td><strong><code>USER.md</code></strong></td><td>记录你的个人偏好、沟通风格、技术背景等</td><td>1,375 字符</td><td>"用户档案"</td></tr>
+    </table>
+  </div>
+
+  <h4>它的作用？</h4>
+  <p>这两个文件共同构成了 Hermes 的"长期记忆"。它们会在<strong>每次会话开始时</strong>被作为一个"冻结快照"加载进系统提示词，让 AI "想起"关于你和你们工作的所有重要信息。会话中，AI 可以通过 <code>/learn</code> 指令或 <code>memory</code> 工具实时更新这些文件，但更改会在<strong>下一次新会话</strong>中才生效。</p>
+
+  <h4>它体现在哪个文件夹？</h4>
+  <p>这两个文件位于每个 Profile 目录下的 <code>memories/</code> 文件夹中：</p>
+  <ul>
+    <li><strong>默认 Profile</strong>:
+      <ul>
+        <li>Windows: <code>%LOCALAPPDATA%\hermes\memories\</code></li>
+        <li>macOS/Linux: <code>~/.hermes/memories/</code></li>
+      </ul>
+    </li>
+    <li><strong>自定义 Profile</strong>（例如 <code>my-profile</code>）:
+      <ul>
+        <li>Windows: <code>%LOCALAPPDATA%\hermes\profiles\my-profile\memories\</code></li>
+        <li>macOS/Linux: <code>~/.hermes/profiles/my-profile/memories/</code></li>
+      </ul>
+    </li>
+  </ul>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（13.4） <span class="verdict v-mix">记忆机制证实；/learn 归属证伪</span></div>
+    <ul>
+      <li class="ok">MEMORY.md / USER.md 双文件、上限、冻结快照、下次会话生效：全部证实（同第 3、8 章排查）。</li>
+      <li class="ok">Profile 级 memories/ 目录：<code>agent/prompt_builder.py:2186</code> 注释明确按 agent 自身 home 解析（避免读到错误 profile 的文件）。</li>
+      <li class="bad">「通过 /learn 指令实时更新这两个文件」：证伪。<code>/learn</code> 只生成 Skill（<code>agent/learn_prompt.py</code>），不触碰 MEMORY.md / USER.md。记忆更新仅经 <code>memory</code> 工具（或手动编辑文件）。</li>
+    </ul>
+  </div>
+
+  <h3 id="sec13-5">13.5 项目 (Project) 与会话 (Session) &mdash; 分身的"具体任务"</h3>
+  <h4>它们是什么？</h4>
+  <ul>
+    <li><strong>会话 (Session)</strong>：是你与一个特定 Profile 下的 Agent 进行的<strong>单次对话</strong>。所有会话记录都存储在 Profile 目录下的 <code>state.db</code> 数据库文件中。</li>
+    <li><strong>项目 (Project)</strong>：是一个更高层次的工作区概念。创建项目时，你可以为其命名、关联一个或多个本地文件夹，并记录"想法"（这会被保存为 <code>IDEA.md</code> 文件）。</li>
+  </ul>
+
+  <h4>它们的作用？</h4>
+  <ul>
+    <li><strong>会话</strong>用于处理具体的、临时的对话任务。</li>
+    <li><strong>项目</strong>则用于将一组相关的会话、文件和长期目标组织在一起。它为 AI 提供了一个更广阔的上下文背景。</li>
+  </ul>
+
+  <h4>它们体现在哪个文件夹？</h4>
+  <ul>
+    <li><strong>会话历史</strong>：存储在 <code>state.db</code> 文件中，位置在 Profile 根目录下。
+      <ul>
+        <li>默认: <code>%LOCALAPPDATA%\hermes\state.db</code> 或 <code>~/.hermes/state.db</code></li>
+      </ul>
+    </li>
+    <li><strong>项目文件</strong>：项目的核心定义文件（如 <code>IDEA.md</code>）通常存放在你为项目指定的<strong>工作区（Workspace）</strong>文件夹中。这个工作区文件夹可以位于你电脑上的任何位置，但习惯上可以放在 Profile 目录下的 <code>workspace/</code> 文件夹内。
+      <ul>
+        <li>默认工作区: <code>%LOCALAPPDATA%\hermes\workspace\</code> 或 <code>~/.hermes/workspace/</code></li>
+      </ul>
+    </li>
+  </ul>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（13.5） <span class="verdict v-mix">Session 证实；workspace 默认路径无支撑</span></div>
+    <ul>
+      <li class="ok">Session 记录存于 Profile 根目录 state.db：证实（<code>hermes_state.py:348</code>、profiles 下每份独立 state.db）。</li>
+      <li class="ok">Project 创建时命名 + 关联一个或多个本地文件夹 + 写 IDEA.md：证实。<code>apps/desktop/src/store/projects.ts:799-800</code>（folders / primary_path 字段）、<code>:826-827</code>（<code>if (input.idea) writeProjectIdea(...)</code>）、<code>:728</code>（写入 <code>&lt;主文件夹&gt;/IDEA.md</code>）。</li>
+      <li class="warn">「习惯上放在 Profile 目录下的 workspace/ 文件夹」「默认工作区 <code>~/.hermes/workspace/</code>」：源码中<strong>无此默认路径定义</strong>。桌面版项目文件夹由用户在创建时自选任意路径，IDEA.md 落在所选主文件夹内。</li>
+    </ul>
+  </div>
+
+  <h3 id="sec13-6">13.6 工作流程与关系图</h3>
+  <div class="flow-diagram">
+    <div class="flow-node accent">Hermes 桌面版</div>
+    <div class="flow-arrow">&darr;</div>
+    <div class="flow-node">选择 / 创建配置档案 (Profile)</div>
+    <div class="flow-arrow">&darr;</div>
+    <div class="flow-row">
+      <div class="flow-node">
+        <strong>默认 Profile</strong><br>
+        <small>SOUL.md 人格设定<br>memories/ 长期记忆<br>会话 / 项目</small>
+      </div>
+      <div class="flow-node green">
+        <strong>自定义 Profile 1（编程助手）</strong><br>
+        <small>SOUL.md 人格：严谨工程师<br>memories/ 记忆：项目 A 的 API<br>会话：调试代码<br>项目：开发新功能</small>
+      </div>
+      <div class="flow-node orange">
+        <strong>自定义 Profile 2（写作助手）</strong><br>
+        <small>SOUL.md 人格：创意作家<br>memories/ 记忆：写作偏好<br>会话：构思大纲<br>项目：写小说</small>
+      </div>
+    </div>
+  </div>
+  <p style="text-align:center; color: var(--text-dim); font-size: 13px;">每个 Profile 内的会话和项目都依赖该 Profile 独立的 SOUL.md（人格）与 memories/（记忆），互相隔离、互不干扰。</p>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（13.6） <span class="verdict v-ok">概念图：与代码结构一致</span></div>
+    <ul>
+      <li class="ok">「Profile 内会话/项目依赖该 Profile 独立的 SOUL.md 与 memories/、互相隔离」：与 <code>agent/prompt_builder.py:2186</code>（SOUL.md 按 agent 自身 home 解析）及 memories 目录按 home 定位（<code>tools/memory_tool.py</code> 经 get_hermes_home）的实现一致。</li>
+      <li class="warn">图中「人格」标注于 SOUL.md：注意人格（display.personality）与 SOUL.md 实为两套机制，见 13.3 排查。</li>
+    </ul>
+  </div>
+
+  <h3 id="sec13-7">13.7 常见问题 FAQ</h3>
+
+  <div class="qa-block">
+    <div class="qa-q">Q1: "默认" Profile 和通过"新建配置档案"创建的有何区别？</div>
+    <div class="qa-a">
+      <p><strong>A:</strong> "默认" Profile 是 Hermes 安装后自动生成的主环境。而"新建配置档案"是创建一个全新的、隔离的副本。你可以把"默认" Profile 看作你的主账户，其他的 Profile 则是你根据需要创建的、拥有不同"人格"和"记忆"的子账户。它们在文件结构上是完全独立的。</p>
+    </div>
+  </div>
+
+  <div class="qa-block">
+    <div class="qa-q">Q2: 我在"对话"模块设置的人格，和 SOUL.md 是什么关系？</div>
+    <div class="qa-a">
+      <p><strong>A:</strong> "对话"模块中你看到并设置的人格，其底层就是由 <code>SOUL.md</code> 这个文件驱动的。你在界面上做的任何人格相关的修改，最终都会保存到这个文件中。（详见第 15 章的实际验证分析）</p>
+    </div>
+  </div>
+
+  <div class="qa-block">
+    <div class="qa-q">Q3: "项目"的"想法"保存在哪里？</div>
+    <div class="qa-a">
+      <p><strong>A:</strong> 你在"新建项目"时填写的"想法"，会被保存为你项目工作区目录下的 <code>IDEA.md</code> 文件中。</p>
+    </div>
+  </div>
+
+  <div class="qa-block">
+    <div class="qa-q">Q4: 如果我想手动备份或迁移我的整个 Hermes 环境，应该复制哪个文件夹？</div>
+    <div class="qa-a">
+      <p><strong>A:</strong> 你需要备份整个 Hermes 的根目录。对于默认 Profile，就是 <code>~/.hermes/</code>（macOS/Linux）或 <code>%LOCALAPPDATA%\hermes</code>（Windows）文件夹。这个文件夹包含了所有的配置、人格、记忆、技能和会话历史。</p>
+    </div>
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（13.7 FAQ） <span class="verdict v-mix">Q1/Q3/Q4 证实；Q2 证伪</span></div>
+    <ul>
+      <li class="ok"><strong>Q1</strong>（默认 Profile 与新建 Profile 的区别）：证实。默认根目录与 <code>profiles/&lt;name&gt;/</code> 结构如述（<code>hermes_cli/config.py:889</code>）。</li>
+      <li class="bad"><strong>Q2</strong>（「界面设置的人格底层由 SOUL.md 驱动，界面修改最终保存到 SOUL.md」）：证伪。人格持久化走 config.yaml 的 <code>display.personality</code> 键（<code>hermes_cli/personality.py:163-177</code>），SOUL.md 仅由用户手动编辑或 <code>hermes profile create</code> 播种。</li>
+      <li class="ok"><strong>Q3</strong>（项目想法保存为工作区下的 IDEA.md）：证实（<code>projects.ts:719-728</code>）。</li>
+      <li class="ok"><strong>Q4</strong>（备份整个根目录）：证实 —— config.yaml、.env、memories/、skills/、state.db、cron/ 均在 hermes home 下；注意多 Profile 用户还需包含 <code>profiles/</code> 子树（本身在根目录内）。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SEC 14 ==================== -->
+<section id="sec14">
+  <h2><span class="num">14</span>人格设置 9 个选项详解<span class="source-tag source-deepseek">DeepSeek 对话</span></h2>
+
+  <h3>14.1 这些"人格"选项是什么？</h3>
+  <p>它们是 Hermes 内置的<strong>系统提示词预设模板</strong>，用于快速定义 AI 助手的<strong>角色定位、语气风格和沟通方式</strong>。你只需点击选择一个，系统就会自动将对应的提示词写入当前<strong>配置档案（Profile）</strong>的 <code>SOUL.md</code> 文件中，从而让该 Profile 下的所有会话都默认具备这种人格。</p>
+  <div class="callout callout-info">
+    <span class="label">本质</span>这相当于给 AI 一个"人设"，让它以特定身份、口吻和思维模式来回应你。
+  </div>
+
+  <h3>14.2 各选项的含义与典型效果</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>人格选项</th><th>含义 / 角色定位</th><th>预期效果（语气、用词、行为）</th></tr>
+      <tr>
+        <td><strong>Helpful</strong><br><span class="badge badge-blue">默认</span></td>
+        <td>乐于助人的通用助手</td>
+        <td>温和、耐心、主动提供帮助，回答尽量全面，倾向于"我能帮你什么？"</td>
+      </tr>
+      <tr>
+        <td><strong>Concise</strong></td>
+        <td>简洁精炼的实干派</td>
+        <td>回答直接、不废话，避免冗余解释，优先给出核心结论或操作步骤</td>
+      </tr>
+      <tr>
+        <td><strong>Technical</strong></td>
+        <td>专业严谨的工程师/极客</td>
+        <td>使用准确的技术术语，注重逻辑、原理和细节，适合讨论代码、架构、算法</td>
+      </tr>
+      <tr>
+        <td><strong>Creative</strong></td>
+        <td>富有想象力的创意者</td>
+        <td>语言生动，常举比喻、故事或新奇点子，鼓励发散思维和艺术表达</td>
+      </tr>
+      <tr>
+        <td><strong>Teacher</strong></td>
+        <td>循循善诱的老师</td>
+        <td>解释清晰，循序渐进，常反问引导思考，乐于提供示例和练习</td>
+      </tr>
+      <tr>
+        <td><strong>Kawaii</strong></td>
+        <td>可爱/萌系风格</td>
+        <td>使用亲昵、活泼的口语，可能带有表情符号（如 <code>(&#12300;&#65281;&bull;&#768;&#12539;&#967;&bull;&#769;&#12301;&#10023;</code>），语气轻松治愈</td>
+      </tr>
+      <tr>
+        <td><strong>Catgirl</strong></td>
+        <td>猫娘角色扮演</td>
+        <td>以猫娘的口吻说话，添加"喵～"、"主人"等角色用语，行为带撒娇和俏皮感</td>
+      </tr>
+      <tr>
+        <td><strong>Pirate</strong></td>
+        <td>海盗角色扮演</td>
+        <td>使用海盗行话（如"Ahoy!"、"Ye scallywag!"），语气粗犷豪放，增加趣味性</td>
+      </tr>
+      <tr>
+        <td><strong>Shakespeare</strong></td>
+        <td>莎士比亚式古英语风格</td>
+        <td>使用古英语词汇和句式（如"Thou"、"Hark"），语言典雅、戏剧化，适合文学调调</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>14.3 功能体现的逻辑（底层运作机制）</h3>
+
+  <h4>与 SOUL.md 的关系</h4>
+  <ul>
+    <li>当你在此处选择一个"人格"，Hermes 内部会将该选项对应的<strong>完整系统提示词</strong>（一段英文或中文文本）<strong>写入</strong>当前 Profile 根目录下的 <code>SOUL.md</code> 文件中。</li>
+    <li><code>SOUL.md</code> 是每次会话开始时<strong>优先加载</strong>的系统指令，它会固定存在于整个会话的上下文中，持续影响 AI 的每一次回复。</li>
+  </ul>
+
+  <h4>生效方式</h4>
+  <ul>
+    <li><strong>即时保存</strong>：选择后，<code>SOUL.md</code> 会立刻被覆盖或更新。</li>
+    <li><strong>会话生效</strong>：新的 <code>SOUL.md</code> 内容<strong>仅对新发起的会话有效</strong>；当前已经打开的会话仍然沿用旧人格（除非重启会话或手动 <code>/reload</code>）。</li>
+  </ul>
+
+  <h4>自定义扩展</h4>
+  <ul>
+    <li>这些预设只是一个<strong>快捷入口</strong>。你也可以直接编辑 <code>SOUL.md</code> 文件，写入任意自定义人格描述，此时界面上的下拉框可能会显示为"自定义"或保留最后选择的预设，但实际生效的是 <code>SOUL.md</code> 中的内容。</li>
+    <li>因此，这些选项本质上是<strong>一组便捷的模板</strong>，底层逻辑就是"选择 &rarr; 覆盖 <code>SOUL.md</code>"。</li>
+  </ul>
+
+  <h4>对应文件位置</h4>
+  <ul>
+    <li><strong>默认 Profile</strong>：
+      <ul>
+        <li>Windows：<code>%LOCALAPPDATA%\hermes\SOUL.md</code></li>
+        <li>macOS/Linux：<code>~/.hermes/SOUL.md</code></li>
+      </ul>
+    </li>
+    <li><strong>自定义 Profile</strong>（如 <code>my-profile</code>）：
+      <ul>
+        <li>Windows：<code>%LOCALAPPDATA%\hermes\profiles\my-profile\SOUL.md</code></li>
+        <li>macOS/Linux：<code>~/.hermes/profiles/my-profile/SOUL.md</code></li>
+      </ul>
+    </li>
+  </ul>
+
+  <h4>总结</h4>
+  <ul>
+    <li><strong>每个选项 = 一套预设的系统提示词</strong>，用于快速定义 AI 的角色和语气。</li>
+    <li><strong>选择逻辑 = 将对应模板写入 SOUL.md</strong>，覆盖原有内容。</li>
+    <li><strong>生效范围 = 该 Profile 下所有新会话</strong>，旧会话不受影响。</li>
+    <li><strong>底层文件 = SOUL.md</strong>，它是人格设定的持久化存储位置。</li>
+  </ul>
+  <div class="callout callout-warn">
+    <span class="label">注意</span>以上为理论机制。实际行为中"选择人格后 SOUL.md 未更新"的现象，请参见第 15 章的深入分析。
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（第 14 章） <span class="verdict v-bad">核心机制证伪 + 人格清单不完整</span></div>
+    <ul>
+      <li class="bad"><strong>「9 个人格选项」不完整：实际为 14 个</strong>。后端权威定义 <code>hermes_cli/personality.py:43-58</code> 的 BUILTIN_PERSONALITIES 共 14 项：helpful、concise、technical、creative、teacher、kawaii、catgirl、pirate、shakespeare、<strong>surfer、noir、uwu、philosopher、hype</strong>（后 5 个手册遗漏）。桌面端 <code>apps/desktop/src/lib/personalities.ts</code> 的 BUILTIN_PERSONALITIES 与后端逐项镜像（文件头注明 "Mirrors hermes_cli/personality.py — the backend single owner"）。14.2 表格中各人格的语气描述与 <code>personality.py:44-57</code> 的实际提示词文本相符。</li>
+      <li class="bad"><strong>「选择人格 &rarr; 自动写入 SOUL.md」：证伪</strong>。人格的唯一持久化路径是 <code>persist_personality()</code>（<code>hermes_cli/personality.py:163-177</code>）：把人格名写入 config.yaml 的 <code>display.personality</code> 键，原子更新、保留注释，docstring 明确 "Never touches <code>agent.system_prompt</code>" —— 既不写 SOUL.md 也不动系统提示词配置。</li>
+      <li class="ok">「即时保存 + 仅对新会话生效」：方向证实。CLI 的 <code>/personality</code> 命令处理器（<code>hermes_cli/cli_commands_mixin.py:1341-1393</code>）保存后设置 <code>self.agent = None</code> 强制下次重建 agent，已开启的会话不受影响。</li>
+      <li class="ok">「预设只是快捷入口，可直接自定义」：证实。<code>available_personalities()</code>（<code>personality.py:110-112</code>）允许用户在 <code>agent.personalities</code> 配置中按名覆盖内置预设（"user wins"）。</li>
+      <li class="bad">「底层逻辑 = 选择 &rarr; 覆盖 SOUL.md」：证伪（见上）。实际生效方式：CLI 会话中人格提示词直接作为 system_prompt 叠加（<code>cli_commands_mixin.py:1387</code>），与 SOUL.md 是并行注入关系，不是覆盖关系。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SEC 15 ==================== -->
+<section id="sec15">
+  <h2><span class="num">15</span>intro-copy.md 与"Technical 人格未更新 SOUL.md"之谜<span class="source-tag source-deepseek">DeepSeek 对话</span></h2>
+
+  <h3 id="sec15-1">15.1 intro-copy.md 是什么？</h3>
+  <p>从文件内容来看，它是一组<strong>欢迎语（Headline + Body）的 JSON 集合</strong>，每个条目绑定了一个 <code>personality</code> 标签。<strong>它的作用非常明确</strong>：</p>
+  <div class="callout callout-info">
+    <span class="label">作用</span>当你在 Hermes 中新建一个会话时，输入框上方或对话起始处会显示一个欢迎卡片，包含标题（Headline）和提示文字（Body），用于引导你如何提问或描述任务。这些提示<strong>仅用于 UI 展示和用户体验</strong>，它们并不影响 AI 的实际行为或系统提示词。
+  </div>
+  <p>例如，当你选择 <strong>Technical</strong> 人格时，新建会话会随机（或按顺序）显示类似：</p>
+  <blockquote style="border-left:3px solid var(--accent); padding:8px 16px; margin:12px 0; background:var(--surface); border-radius:0 6px 6px 0;">
+    <strong>"Shell mounted. Awaiting input."</strong><br>
+    <em>"Provide repo path, failing test, or stack trace. Tools: fs, git, exec, search, patch, http."</em>
+  </blockquote>
+  <p>这些文字只是告诉你"你可以这样提问"，而<strong>并非告诉 AI 如何表现</strong>。</p>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（15.1） <span class="verdict v-mix">作用证实；文件名不准确</span></div>
+    <ul>
+      <li class="warn"><strong>文件名</strong>：源码中不存在 <code>intro-copy.md</code>。实际文件是 <code>apps/desktop/src/templates/uisvg/i18n/intro-copy-en.jsonl</code> 与 <code>intro-copy-zh.jsonl</code>（JSONL 格式，每行 <code>{"personality":…, "headline":…, "body":…}</code>），并有 ar/ja/zh-hant 等多语言版本。</li>
+      <li class="ok"><strong>作用</strong>：证实。它是桌面版新建会话欢迎卡的文案库，按 personality 标签分组；<code>apps/desktop/src/templates/uisvg/widgets/QuickToolsSettings.tsx:6</code> 注释明确其为「任务提示语」UI 配置，可在设置界面编辑、保存后下次加载生效 —— 纯 UI 展示，不进系统 prompt。</li>
+      <li class="ok">人格覆盖度：intro-copy-en.jsonl 实际包含<strong>全部 14 种人格</strong>（含 technical）+ none，与 15.1 的示例描述兼容。</li>
+    </ul>
+  </div>
+
+  <h3 id="sec15-2">15.2 人格选择到底有没有生效？它影响了什么？</h3>
+  <p>你选择了 <strong>Technical</strong>，并且保存了设置，但 <code>SOUL.md</code> 没有变化。这并不意味着人格设置无效，而是因为<strong>Hermes 人格设置的存储和生效方式，并非只依赖于 SOUL.md 一个文件</strong>。</p>
+
+  <h4>实际生效机制（推断）</h4>
+  <ol>
+    <li><strong>设置保存</strong>：当你点击保存人格时，Hermes 会将 <code>personality</code> 字段（如 <code>"technical"</code>）写入当前 Profile 的<strong>配置文件</strong>中，通常是 <code>config.yaml</code> 或 <code>config.json</code>，而不是直接修改 <code>SOUL.md</code>。<br>
+    <em>位置</em>：<code>~/.hermes/config.yaml</code>（或 <code>profiles/&lt;your-profile&gt;/config.yaml</code>）中会有一个 <code>personality: technical</code> 的键值对。</li>
+    <li><strong>会话构建</strong>：每次<strong>新建会话</strong>时，Hermes 会读取当前 Profile 的配置，获取 <code>personality</code> 值，然后：
+      <ul>
+        <li>从 <code>intro-copy.md</code> 中选取对应的欢迎语展示给你。</li>
+        <li><strong>动态构造系统提示词</strong>：它会将预设的人格指令（Technical 对应的系统级提示词）<strong>动态地追加到会话上下文</strong>中，而不是写入 <code>SOUL.md</code> 文件。这些动态指令通常与 <code>SOUL.md</code> 的内容合并，构成完整的系统提示。</li>
+      </ul>
+    </li>
+    <li><strong>为什么 SOUL.md 没变？</strong><br>
+    <code>SOUL.md</code> 被设计为<strong>用户自定义人格的专用文件</strong>，它的优先级高于预设人格。当你选择预设人格时，Hermes 不会覆盖 <code>SOUL.md</code>，以免你手动编写的个性化内容被意外擦除。
+      <ul>
+        <li>如果你希望预设人格也写入 <code>SOUL.md</code>，可能需要手动复制对应指令进去，或者通过 Hermes 的命令行工具（如 <code>/set personality</code>）来实现 &mdash; 但桌面版的 GUI 当前可能并不支持覆盖 <code>SOUL.md</code>。</li>
+      </ul>
+    </li>
+  </ol>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（15.2） <span class="verdict v-mix">推断方向正确，细节已由代码修正</span></div>
+    <ul>
+      <li class="ok"><strong>第 1 步「写入配置文件而非 SOUL.md」：推断正确，细节修正</strong>。实际键为 config.yaml 的 <code>display.personality</code>（<code>hermes_cli/personality.py:163-177</code>，原子写入并保留注释），不是泛泛的 <code>personality: technical</code> 键值对。</li>
+      <li class="ok"><strong>第 2 步「新会话动态构造系统提示词」：证实</strong>。CLI 侧 <code>cli_commands_mixin.py:1387</code> 直接 <code>self.system_prompt = personality_prompt</code> 并强制重建 agent；<code>personality.py:139</code> 的 <code>resolve_personality()</code> 负责把名字解析为完整提示词文本（即 <code>personality.py:44-57</code> 中那 14 段预设文案）。</li>
+      <li class="warn"><strong>「与 SOUL.md 的内容合并」：无代码证据</strong>。CLI 实现是人格提示词<strong>独立设置</strong>为 system_prompt，未见与 SOUL.md 的合并/拼接逻辑；桌面端注入细节需另行排查 gateway 路径，但至少「合并」这一表述目前无代码支撑。</li>
+      <li class="ok"><strong>第 3 步「SOUL.md 不会被预设人格覆盖」：证实</strong>。<code>persist_personality()</code> 根本不触碰 SOUL.md，用户手写内容天然安全 —— 但原因不是「优先级保护」，而是<strong>机制上就分属两套配置</strong>。</li>
+      <li class="bad">「命令行工具 <code>/set personality</code>」：命令名有误，实际是 <code>/personality &lt;name&gt;</code>（<code>hermes_cli/commands.py:250</code> — CommandDef("personality", "Set a predefined personality")）。</li>
+    </ul>
+  </div>
+
+  <h3 id="sec15-3">15.3 如何验证你的 Technical 人格确实生效了？</h3>
+
+  <h4>方法一：在对话中询问 AI</h4>
+  <p>新建一个会话，直接问：</p>
+  <blockquote style="border-left:3px solid var(--green); padding:8px 16px; margin:12px 0; background:var(--surface); border-radius:0 6px 6px 0;">"请用一句话描述你的角色定位和思考风格。"</blockquote>
+  <p>如果 AI 的回答偏向"严谨、逻辑、注重细节"，就说明 Technical 人格已经注入到系统提示词中。你可以进一步追问：</p>
+  <blockquote style="border-left:3px solid var(--green); padding:8px 16px; margin:12px 0; background:var(--surface); border-radius:0 6px 6px 0;">"请展示你当前系统提示词中关于人格的部分。"</blockquote>
+  <p>（如果 Hermes 允许，它会输出相关指令。）</p>
+
+  <h4>方法二：查看会话日志或调试信息</h4>
+  <p>Hermes 通常会在 <code>~/.hermes/logs/</code> 或 <code>~/.hermes/transcripts/</code> 中记录每次会话的完整系统提示词（包括注入的内容）。你可以查阅最新会话的日志，确认其中是否包含 Technical 的专属指令。</p>
+
+  <h4>方法三：检查配置文件</h4>
+  <p>打开当前 Profile 的 <code>config.yaml</code>（路径同上），找到 <code>personality</code> 字段，确认是否为 <code>technical</code>。如果存在，则设置已保存。</p>
+
+  <h4>文件位置总结</h4>
+  <div class="table-wrap">
+    <table>
+      <tr><th>文件/目录</th><th>作用</th><th>路径（默认 Profile）</th></tr>
+      <tr>
+        <td><code>intro-copy.md</code></td>
+        <td>存储所有人格的欢迎语模板，供 UI 显示用</td>
+        <td>可能位于安装目录或资源目录，不是用户配置的一部分</td>
+      </tr>
+      <tr>
+        <td><code>config.yaml</code></td>
+        <td>当前 Profile 的配置文件，包含 <code>personality</code> 等设置</td>
+        <td><code>~/.hermes/config.yaml</code>（或 <code>profiles/&lt;name&gt;/config.yaml</code>）</td>
+      </tr>
+      <tr>
+        <td><code>SOUL.md</code></td>
+        <td>用户自定义的系统提示词（人格指令）</td>
+        <td><code>~/.hermes/SOUL.md</code>（或 <code>profiles/&lt;name&gt;/SOUL.md</code>）</td>
+      </tr>
+      <tr>
+        <td>会话日志</td>
+        <td>记录每次会话的详细上下文，可验证人格是否注入</td>
+        <td><code>~/.hermes/logs/</code> 或 <code>~/.hermes/transcripts/</code></td>
+      </tr>
+    </table>
+  </div>
+
+  <h4>结论与建议</h4>
+  <ul>
+    <li><strong>你设置的 Technical 人格是有效的</strong>，它已经保存在配置中，并会在新会话中动态生效（影响 AI 的回复风格），但不会修改 <code>SOUL.md</code>。</li>
+    <li><code>intro-copy.md</code> 只负责显示欢迎语，不参与 AI 的实际行为。</li>
+    <li>如果你希望将预设人格固化到 <code>SOUL.md</code> 中，可以手动编辑 <code>SOUL.md</code>，将 Technical 的完整指令粘贴进去，之后该人格就会作为你的自定义默认值。</li>
+  </ul>
+  <div class="callout callout-warn">
+    <span class="label">排查建议</span>如果你在验证后发现 AI 并没有表现出 Technical 风格，那可能是 Hermes 的当前版本存在 Bug 或设计差异。此时你可以尝试完全退出再重启 Hermes，或者通过命令行工具强制设置人格（如 <code>hermes personality set technical</code>）来确保生效。
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（15.3） <span class="verdict v-mix">方法三证实；日志路径与命令名有偏差</span></div>
+    <ul>
+      <li class="ok"><strong>方法三（查配置文件）</strong>：证实且可精确到键 —— 打开当前 Profile 的 <code>config.yaml</code>，查 <code>display.personality: technical</code>（<code>personality.py:1400</code> 读取同一键作为当前值显示）。</li>
+      <li class="warn"><strong>方法二（logs/ 或 transcripts/ 中查系统提示词）</strong>：<code>~/.hermes/logs/</code> 目录存在（<code>hermes_logging.py:304</code>），但其内容是否含完整系统 prompt 未在源码中证实；transcripts/ 是子代理转录目录（见 2.2 排查），此方法不可靠。</li>
+      <li class="bad"><strong>「<code>hermes personality set technical</code>」命令名有误</strong>：实际用法是 CLI 会话内 <code>/personality technical</code>（见 15.2 排查）。</li>
+      <li class="ok"><strong>方法一（对话中询问）</strong>：行为学验证方法，与代码无冲突，属合理建议。</li>
+      <li class="ok">15.3 末尾的文件位置表：config.yaml 与 SOUL.md 的路径正确；intro-copy 一行已由 15.1 排查修正（.jsonl、位于安装目录 <code>apps/desktop/src/templates/uisvg/i18n/</code>，非用户配置）。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SEC 16 ==================== -->
+<section id="sec16">
+  <h2><span class="num">16</span>记忆文件系统优先级管控顺序（4 级）<span class="source-tag source-deepseek">DeepSeek 对话</span></h2>
+
+  <h3>16.1 先回答一个疑问：MEMORY.md 和 USER.md 需要手动设置吗？</h3>
+  <p><strong>猜测 80% 正确，需要补充一个关键细节：</strong></p>
+  <ul>
+    <li><strong>它们确实是"自动积累"的</strong>：你不需要手动去创建或编辑它们。Hermes 会在你使用 <code>/learn</code> 指令、或者在你完成复杂任务后自动调用 <code>memory</code> 工具，把关键信息提炼并写入这两个文件。</li>
+    <li><strong>但它们也是"可手动干预"的</strong>：如果你觉得 AI 记错了，或者你想直接"灌输"给它某个重要规则，你可以随时用记事本打开这两个文件直接编辑。这相当于<strong>"管理员直接修改数据库"</strong>，优先级极高。</li>
+  </ul>
+
+  <h3>16.2 核心逻辑：从高到低的 4 级优先级控制顺序</h3>
+  <p>Hermes 在启动一个新会话时，会把多个文件的内容<strong>按固定顺序拼装</strong>成一份完整的"系统提示词（System Prompt）"。这就像做汉堡，底层的面包（基础人格）如果和顶层的生菜（项目目标）冲突，顶层会覆盖底层，但有些层是绝对不能动的。</p>
+  <p>以下是<strong>从高到低（绝对统治 &rarr; 临时辅助）</strong>的 4 级优先级控制顺序：</p>
+
+  <div class="prio-level p1">
+    <div class="rank">第 1 级<br><small>最高权重</small></div>
+    <div class="body">
+      <div class="name">"宪法"<code>SOUL.md</code></div>
+      <p><strong>核心职责</strong>：定义<strong>"你是谁"</strong>（核心身份、底层价值观、不可违背的铁律）。</p>
+      <p><strong>是否自动更新</strong>：否（仅用户手动设置）</p>
+      <p><strong>冲突处理规则</strong>：<strong>绝不被覆盖</strong>。即使 Memory 说"用户喜欢简短"，如果 Soul 说"必须详细解释"，AI 会优先遵守 Soul。</p>
+    </div>
+  </div>
+
+  <div class="prio-level p2">
+    <div class="rank">第 2 级</div>
+    <div class="body">
+      <div class="name">"用户档案"<code>USER.md</code></div>
+      <p><strong>核心职责</strong>：定义<strong>"我是谁"</strong>（用户的背景、沟通偏好、个人习惯）。</p>
+      <p><strong>是否自动更新</strong>：是（AI 自动学习/积累）</p>
+      <p><strong>冲突处理规则</strong>：<strong>覆盖 Memory 的泛化知识</strong>。例如 Memory 说"通用方案是 A"，但 User 说"我讨厌方案 A"，AI 会听 User 的。</p>
+    </div>
+  </div>
+
+  <div class="prio-level p3">
+    <div class="rank">第 3 级</div>
+    <div class="body">
+      <div class="name">"工作日志/项目笔记"<code>MEMORY.md</code></div>
+      <p><strong>核心职责</strong>：定义<strong>"我们做过什么"</strong>（当前项目的技术栈、已知的 Bug 解决方案、已定的架构约定）。</p>
+      <p><strong>是否自动更新</strong>：是（AI 自动学习/积累）</p>
+      <p><strong>冲突处理规则</strong>：<strong>覆盖通用知识库</strong>。例如 AI 预训练知识说"用 Vite"，但 Memory 说"本项目强制用 Webpack"，AI 会听 Memory 的。</p>
+    </div>
+  </div>
+
+  <div class="prio-level p4">
+    <div class="rank">第 4 级<br><small>最低/临时</small></div>
+    <div class="body">
+      <div class="name">"待办便签"<code>IDEA.md</code>（以及当前会话的临时上下文）</div>
+      <p><strong>核心职责</strong>：定义<strong>"这个具体项目要干嘛"</strong>（当下的目标、这次会话的核心任务）。</p>
+      <p><strong>是否自动更新</strong>：否（用户新建项目时手动填写）</p>
+      <p><strong>冲突处理规则</strong>：<strong>仅作为上下文补充</strong>。如果 Idea 说"今天重构登录页"，但 Memory 说"登录页已废弃"，AI 会优先听 Memory 的既定事实。</p>
+    </div>
+  </div>
+
+  <h3>16.3 拼装逻辑（入锅顺序）</h3>
+  <p>当你新建一个会话时，Hermes 的"大脑"是按照以下顺序"吃"进去这些信息的：</p>
+  <ol>
+    <li><strong>先吃 <code>SOUL.md</code></strong>（定义基调：你是一个严谨的工程师，不允许胡扯）。</li>
+    <li><strong>再吃 <code>USER.md</code></strong>（套用滤镜：用户喜欢带代码示例的回答，讨厌废话）。</li>
+    <li><strong>接着吃 <code>MEMORY.md</code></strong>（填充背景：当前仓库用的是 Python 3.11，数据库是 PostgreSQL）。</li>
+    <li><strong>最后吃 <code>IDEA.md</code> 和当前的 Prompt</strong>（下达指令：现在，请帮我修复这个登录接口的超时问题）。</li>
+  </ol>
+  <div class="callout callout-success">
+    <span class="label">结果</span>AI 会以"严谨工程师（Soul）"的身份，用"带代码示例（User）"的风格，基于"Python 3.11 和 PostgreSQL（Memory）"的技术事实，去完成"修复登录超时（Idea）"的任务。
+  </div>
+
+  <h3>16.4 文件路径速查表（Windows）</h3>
+  <div class="table-wrap">
+    <table>
+      <tr><th>文件</th><th>具体路径（默认 Profile）</th></tr>
+      <tr><td><strong>宪法 (SOUL.md)</strong></td><td><code>C:\Users\Administrator\AppData\Local\hermes\SOUL.md</code></td></tr>
+      <tr><td><strong>用户档案 (USER.md)</strong></td><td><code>C:\Users\Administrator\AppData\Local\hermes\memories\USER.md</code></td></tr>
+      <tr><td><strong>工作日志 (MEMORY.md)</strong></td><td><code>C:\Users\Administrator\AppData\Local\hermes\memories\MEMORY.md</code></td></tr>
+      <tr><td><strong>项目便签 (IDEA.md)</strong></td><td>位于你创建项目时指定的工作区文件夹内（例如 <code>C:\Users\Administrator\Documents\MyProject\IDEA.md</code>）</td></tr>
+    </table>
+  </div>
+
+  <div class="callout callout-success">
+    <span class="label">实操建议（最高心法）</span>如果你发现 AI 的性格（Soul）被自动积累的记忆（Memory）带偏了，不要试图去删 Memory，直接去<strong>修改 <code>SOUL.md</code></strong>，在开头加一句"<strong>无论如何，你必须优先遵守以下原则...</strong>"，这就等于给 AI 上了"紧箍咒"，记忆模块无论如何积累都无法撼动它。这就是优先级管控的最高心法。
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（第 16 章） <span class="verdict v-bad">「4 级优先级」框架大体证伪，实际是平行拼接</span></div>
+    <ul>
+      <li class="ok"><strong>16.1</strong>（自动积累 + 可手动干预）：证实。memory 工具自动写入、<code>load_from_disk()</code> 使手动编辑下一会话生效。</li>
+      <li class="bad"><strong>16.2 优先级顺序「SOUL &gt; USER &gt; MEMORY &gt; IDEA」：证伪</strong>。真实拼装顺序（<code>agent/system_prompt.py</code> stable/volatile 分层）：
+        <ol style="margin:6px 0 6px 18px">
+          <li><strong>SOUL.md</strong> —— stable 层 identity 首位（<code>system_prompt.py:375-382</code>），"最高"成立；</li>
+          <li><strong>skills 索引</strong> —— volatile 段最前（<code>system_prompt.py:742-743</code>）；</li>
+          <li><strong>MEMORY.md</strong>（<code>system_prompt.py:745-749</code>）；</li>
+          <li><strong>USER.md</strong>（<code>system_prompt.py:750-754</code>）—— 注意 <strong>MEMORY 在 USER 之前</strong>，与手册「USER 第 2 级 &gt; MEMORY 第 3 级」相反；</li>
+          <li>外部记忆提供商块（<code>system_prompt.py:756-761</code>）+ 日期时间戳。</li>
+        </ol>
+        <strong>IDEA.md 完全不在系统 prompt 拼装序列中</strong> —— 后端代码（agent/ tools/ hermes_cli/ gateway/ plugins/）对 IDEA.md 零引用，它只是桌面版新建项目时写到项目文件夹的普通文件。</li>
+      <li class="bad"><strong>「顶层覆盖底层」的冲突消解机制：无代码支撑</strong>。各文件内容是<strong>平等拼接进同一个系统 prompt</strong>，代码中不存在任何"谁覆盖谁"的裁决逻辑；冲突时如何取舍完全由 LLM 自行判断。16.2 中"Soul 说必须详细则不听 Memory"等规则均为行为学推断。</li>
+      <li class="warn"><strong>16.3 入锅顺序</strong>：SOUL 最先 ✅、MEMORY/USER 顺序 ❌（实际 memory 在前）、IDEA.md ❌（不参与）、且遗漏 skills 索引与外部记忆两环。</li>
+      <li class="ok"><strong>16.4 路径速查表</strong>：三个 hermes home 内路径全部正确；IDEA.md「位于项目工作区文件夹内」正确。</li>
+      <li class="warn"><strong>「改 SOUL.md 上紧箍咒」实操建议</strong>：SOUL.md 确实位于 prompt 最前的 identity 位（<code>system_prompt.py:375</code>），该建议在工程上合理可用；但"绝对压倒记忆"无强制机制，效果仍取决于 LLM 遵循度。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SEC 17 ==================== -->
+<section id="sec17">
+  <h2><span class="num">17</span>工作流与 .md 文件映射<span class="source-tag source-deepseek">DeepSeek 对话</span></h2>
+  <p>Hermes 的标准工作流（"Plan-and-Solve 规划与求解" + "Reflection 反思"的 Agent 架构）与文件系统的对应关系，核心在于区分<strong>"输入（读）"</strong>与<strong>"输出（写/沉淀）"</strong>两个阶段。</p>
+
+  <h3 id="sec17-1">17.1 加载与推理阶段（读操作）</h3>
+  <p>这个阶段，Hermes 的"大脑"会像拼图一样，将分散的文件加载进上下文（System Prompt）。这些文件决定了<strong>"怎么想"</strong>和<strong>"背景是什么"</strong>。</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>工作流步骤</th><th>对应读取的 .md 文件</th><th>具体作用与放置逻辑</th></tr>
+      <tr>
+        <td><strong>1. 收到任务</strong><br><strong>2. 理解意图</strong></td>
+        <td><code>SOUL.md</code><br><code>USER.md</code></td>
+        <td><strong>（顶层框架）</strong>这两份文件在会话启动时<strong>最先被加载</strong>。<br>
+        &bull; <code>SOUL.md</code>（宪法）：定义 AI 的"身份与价值观"，决定了如何拆解任务。<br>
+        &bull; <code>USER.md</code>（用户档案）：定义"用户的口味"，用于过滤意图（例如用户喜欢代码示例，AI 就会优先按这个方向理解意图）。</td>
+      </tr>
+      <tr>
+        <td><strong>3. 读取长期记忆</strong><br><strong>4. 读取已有 Skills</strong></td>
+        <td><code>MEMORY.md</code><br><code>skills/</code> 目录下的 <code>SKILL.md</code><br>（可选）<code>IDEA.md</code> / <code>AGENTS.md</code></td>
+        <td><strong>（背景知识库）</strong>在执行任务前，加载过去的经验和专属技能。<br>
+        &bull; <code>MEMORY.md</code>：告诉你"项目以前用过什么技术栈"、"上次踩过什么坑"。<br>
+        &bull; <code>skills/*.md</code>：如果任务匹配某个已固化的技能（如 <code>deploy.md</code>），直接调用。<br>
+        &bull; <code>IDEA.md</code>（项目根目录）：如果是具体项目任务，加载"项目初衷/范围"，避免跑偏。</td>
+      </tr>
+      <tr>
+        <td><strong>5. Planner 制定方案</strong><br><strong>6. LLM 推理与决策</strong></td>
+        <td>（此阶段不读新文件）</td>
+        <td>利用上述已加载的所有内容进行推理。</td>
+      </tr>
+      <tr>
+        <td><strong>7. 调用工具执行</strong></td>
+        <td>（不落盘）</td>
+        <td>执行期间生成的临时输出（如 Shell 返回、浏览器抓取）暂存在上下文，不落盘。</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3 id="sec17-2">17.2 检查与沉淀阶段（写操作）</h3>
+  <p>这个阶段是 Hermes 的<strong>"学习闭环"</strong>，将本次任务的成败经验<strong>固化</strong>成文件，以便下次使用。</p>
+  <div class="table-wrap">
+    <table>
+      <tr><th>工作流步骤</th><th>对应写入的 .md 文件</th><th>具体作用与放置逻辑</th></tr>
+      <tr>
+        <td><strong>8. 检查执行结果</strong><br><strong>9. 成功 / 失败</strong><br><strong>10. Reflection / RePlan</strong></td>
+        <td>（无文件写入）</td>
+        <td>仅在上下文进行自我对话反思。</td>
+      </tr>
+      <tr>
+        <td><strong>11. Learning（学习沉淀）</strong><br><strong>12. 更新 Memory</strong></td>
+        <td><code>MEMORY.md</code><br>（条件触发）<code>USER.md</code></td>
+        <td><strong>（积累长期经验）</strong>这是最关键的一步。<br>
+        &bull; 如果学到了<strong>新的技术事实</strong>（例如"此项目必须用 Python 3.10"），AI 调用 <code>memory</code> 工具写入 <code>MEMORY.md</code>。<br>
+        &bull; 如果发现<strong>你的新偏好</strong>（例如"这次你明确说了不要解释理论"），AI 会更新 <code>USER.md</code>。</td>
+      </tr>
+      <tr>
+        <td><strong>13. 生成新的 Skill</strong></td>
+        <td><code>skills/</code> 目录下新建 <code>.md</code> 文件<br>（例如 <code>skills/deploy-to-aws.md</code>）</td>
+        <td><strong>（封装标准化流程）</strong>如果本次执行非常成功，且属于<strong>高频通用任务</strong>，AI 会将具体的执行步骤、指令模板抽取出来，生成一个独立的 Skill 文件。下次再遇到相同任务，步骤 4 会直接命中这个文件，省去重新规划的时间。</td>
+      </tr>
+    </table>
+  </div>
+
+  <h4>补充：规划阶段的"项目级"文件放置</h4>
+  <ul>
+    <li>如果在"项目"模式下新建会话，Hermes 会优先读取项目根目录下的<strong><code>IDEA.md</code></strong>（项目蓝图）和<strong><code>.hermes.md</code></strong>（项目特定规则）。</li>
+    <li>这些文件在流程图中属于<strong>步骤 3（读取长期记忆）</strong>的<strong>补充上下文</strong>，但它的优先级在规划时<strong>高于</strong>通用的 <code>MEMORY.md</code>，因为它代表了<strong>本次任务的刚性目标</strong>。</li>
+  </ul>
+
+  <h3 id="sec17-3">17.3 可视化全景图（文件填充版）</h3>
+  <pre><code>收到任务（Task）
+        │
+        ▼
+【加载 SOUL.md + USER.md】 ← 定义身份与偏好（最高权重）
+        │
+        ▼
+理解用户意图（Intent Analysis）
+        │
+        ▼
+读取长期记忆（Memory Retrieval） → 【读取 MEMORY.md + 项目下的 IDEA.md】
+        │
+        ▼
+读取已有 Skills → 【扫描 skills/ 目录下的 *.md】
+        │
+        ▼
+Planner 制定执行方案  ← 融合以上所有文本进行推理
+        │
+        ▼
+LLM 推理与决策
+        │
+        ▼
+调用 Skill / MCP / Browser / Shell 执行任务（执行过程不落盘）
+        │
+        ▼
+检查执行结果
+        │
+   ┌────┴────┐
+   │         │
+成功       失败
+ │           │
+ ▼           ▼
+Reflection 重新规划（RePlan） ← 基于错误日志修正方案
+ │           │
+ └────┬──────┘
+      ▼
+Learning（学习沉淀）
+      │
+      ▼
+更新 Memory → 【写入 MEMORY.md 或 更新 USER.md】
+      │
+      ▼
+生成新的 Skill → 【在 skills/ 下创建新的 .md 文件】</code></pre>
+
+  <h4>总结（实操建议）</h4>
+  <ol>
+    <li><strong><code>SOUL.md</code> 和 <code>USER.md</code></strong> 是每次会话<strong>一开始</strong>就锁死的（读入后不再改变），所以如果你想彻底改变 AI 的工作流风格，改这两个文件比去删 <code>MEMORY.md</code> 更管用。</li>
+    <li><strong><code>MEMORY.md</code></strong> 是<strong>持续积累</strong>的，它对应你流程图里的"更新 Memory"步骤，主要记录 <strong>What（事实）</strong>。</li>
+    <li><strong>Skill 文件</strong>是<strong>最终成品</strong>，对应"生成新的 Skill"，它记录 <strong>How（步骤）</strong>。一旦生成，未来的流程图会在"读取已有 Skills"这一步直接短路掉后面的复杂规划，极大提升效率。</li>
+  </ol>
+  <div class="callout callout-info">
+    <span class="label">价值</span>有了这个文件映射，当 AI 行为异常时，你就知道该去干预流程图里的哪个环节了。
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（第 17 章） <span class="verdict v-mix">读写主链路证实；IDEA.md 环节证伪</span></div>
+    <ul>
+      <li class="ok"><strong>17.1 读操作</strong>：SOUL.md / USER.md / MEMORY.md / skills 索引在会话启动时注入系统 prompt —— 证实（<code>agent/system_prompt.py:375-392, 742-754</code>）；AGENTS.md / .hermes.md / CLAUDE.md / .cursorrules 作为上下文文件扫描 —— 证实（<code>agent/agent_init.py:613</code>、<code>agent/prompt_builder.py:2130, 2389-2441</code>）。</li>
+      <li class="bad"><strong>「IDEA.md（项目根目录）会在会话中加载」：证伪</strong>。全后端对 IDEA.md 零引用；它不进入任何 prompt 拼装路径。若需项目级上下文，实际机制是项目文件夹中的 AGENTS.md / .hermes.md 等上下文文件。</li>
+      <li class="warn"><strong>「Plan-and-Solve + Reflection 架构」步骤编号</strong>：这是对 Agent 行为的抽象描述，源码中无一一对应的 13 步流水线；各环节（技能调用、反思、memory 写入）确有代码载体，但编号映射属示意性质。</li>
+      <li class="ok"><strong>17.2 写操作</strong>：memory 工具写 MEMORY.md / USER.md —— 证实；skill_manage 生成新 Skill 文件到 skills/ —— 证实（<code>agent/learn_prompt.py:14</code> "Author a skill via <code>skill_manage</code>"）。</li>
+      <li class="bad"><strong>17.1/17.3 中 USER.md 先于 MEMORY.md 加载、IDEA.md 参与加载</strong>：与 16 章排查同理，实际顺序 SOUL &rarr; skills &rarr; MEMORY &rarr; USER，无 IDEA.md。</li>
+      <li class="ok"><strong>总结第 1、3 条</strong>：「SOUL.md 与 USER.md 会话开始读入后锁定」「MEMORY.md 持续积累记录 What」「Skill 记录 How」—— 与代码行为一致。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SEC 18 ==================== -->
+<section id="sec18">
+  <h2><span class="num">18</span>优质记忆条目示例<span class="source-tag source-official">官方文档</span></h2>
+  <p>紧凑、信息密度高的条目效果最佳：</p>
+
+  <h3>18.1 优质条目</h3>
+  <pre><code># Good: 将多个相关事实打包在一起
+User runs macOS 14 Sonoma, uses Homebrew, has Docker Desktop and Podman.
+Shell: zsh with oh-my-zsh. Editor: VS Code with Vim keybindings.
+
+# Good: 具体、可操作的约定
+Project ~/code/api uses Go 1.22, sqlc for DB queries, chi router.
+Run tests with 'make test'. CI via GitHub Actions.
+
+# Good: 带上下文的经验教训
+The staging server (10.0.1.50) needs SSH port 2222, not 22.
+Key is at ~/.ssh/staging_ed25519.</code></pre>
+
+  <h3>18.2 劣质条目</h3>
+  <pre><code># Bad: 太模糊
+User has a project.
+
+# Bad: 太冗长
+On January 5th, 2026, the user asked me to look at their project which is
+located at ~/code/api. I discovered it uses Go version 1.22 and...</code></pre>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（第 18 章） <span class="verdict v-ok">整体：代码证实</span></div>
+    <ul>
+      <li class="ok">优质/劣质条目的判断标准与 <code>tools/memory_tool.py</code> 内嵌指导文本一致（"compact, high-information entries" 风格引导、反模糊反冗长），示例风格有代码载体支撑。</li>
+      <li class="warn">示例本身为官方文档内容，非源码中硬编码的样例；执行效果取决于 Agent 遵循指导文本的程度。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== SEC 19 ==================== -->
+<section id="sec19">
+  <h2><span class="num">19</span>总结</h2>
+
+  <h3>19.1 记忆系统核心（官方文档）</h3>
+  <ul>
+    <li>Hermes Agent 的记忆系统由 <strong>MEMORY.md</strong>（Agent 笔记，2,200 字符）和 <strong>USER.md</strong>（用户档案，1,375 字符）两个核心文件构成，位于 <code>~/.hermes/memories/</code> 目录下。</li>
+    <li>Agent 通过 <code>memory</code> 工具自主管理记忆条目（add / replace / remove），在每次会话开始时以冻结快照形式注入系统 prompt。</li>
+    <li>重复条目自动拒绝；记忆写入前经过安全扫描（防 prompt 注入 / 凭据外泄）。</li>
+    <li><strong>state.db</strong> 存储所有会话历史以供 FTS5 全文搜索（session_search）。</li>
+  </ul>
+
+  <h3>19.2 桌面版配置层级（DeepSeek 对话）</h3>
+  <ol>
+    <li><strong>配置档案 (Profile)</strong> 是最顶层的隔离单位，相当于一个独立的 AI 分身。</li>
+    <li>每个 Profile 通过 <strong><code>SOUL.md</code></strong> 定义其独特的人格（宪法级，绝不被覆盖）。</li>
+    <li>通过 <strong><code>USER.md</code></strong>（用户档案，第 2 级）和 <strong><code>MEMORY.md</code></strong>（工作日志，第 3 级）实现跨会话的长期记忆。</li>
+    <li>在 Profile 之下，你可以创建不同的<strong>会话</strong>来处理具体任务，或创建<strong>项目</strong>（<code>IDEA.md</code>，第 4 级）来组织更大的工作。</li>
+  </ol>
+
+  <h3>19.3 记忆生命周期一句话</h3>
+  <div class="flow-diagram">
+    <div class="flow-node accent">会话开始 &mdash; 加载 SOUL.md &rarr; USER.md &rarr; MEMORY.md &rarr; IDEA.md（冻结快照）</div>
+    <div class="flow-arrow">&darr;</div>
+    <div class="flow-node">对话交互 &mdash; 记忆作为上下文可见</div>
+    <div class="flow-arrow">&darr;</div>
+    <div class="flow-row">
+      <div class="flow-node"><code>memory add</code></div>
+      <div class="flow-node"><code>memory replace</code></div>
+      <div class="flow-node"><code>memory remove</code></div>
+    </div>
+    <div class="flow-arrow">&darr;</div>
+    <div class="flow-node orange">安全扫描 + 重复检查</div>
+    <div class="flow-arrow">&darr;</div>
+    <div class="flow-node green">立即持久化到磁盘（当前会话 prompt 不变）</div>
+    <div class="flow-arrow">&darr;</div>
+    <div class="flow-node accent">下次会话开始 &rarr; 重新加载（循环）</div>
+  </div>
+
+  <div class="callout callout-success">
+    <span class="label">一句话心法</span>理解了这个层级结构，你就能完全掌控 Hermes 的行为，为不同的工作场景打造最合适的 AI 助手。所有的自定义最终都归结为对 <code>~/.hermes/</code> 目录下特定文件的管理。若要给 AI 上"紧箍咒"，直接修改 <code>SOUL.md</code> 并在开头写明"无论如何，你必须优先遵守以下原则..."。
+  </div>
+
+  <div class="audit">
+    <div class="audit-title">🔎 代码排查结果（第 19 章总结） <span class="verdict v-mix">19.1 全证实；19.2/19.3 需修正</span></div>
+    <ul>
+      <li class="ok"><strong>19.1 记忆系统核心</strong>：四条全部代码证实（双文件与上限、add/replace/remove 冻结快照、重复拒绝与安全扫描、state.db + FTS5）。</li>
+      <li class="ok"><strong>19.2 第 1、2 条</strong>：Profile 顶层隔离、SOUL.md 人格定义 —— 证实。</li>
+      <li class="bad"><strong>19.2 第 3 条「USER.md 第 2 级、MEMORY.md 第 3 级」</strong>：注入顺序实为 MEMORY 在前 USER 在后（<code>agent/system_prompt.py:745-754</code>）；「级」的说法无代码依据（平行拼接，无覆盖裁决）。</li>
+      <li class="bad"><strong>19.2 第 4 条与 19.3 流程图「IDEA.md 第 4 级 / 加载 IDEA.md」</strong>：证伪 —— IDEA.md 不进系统 prompt（后端零引用）。19.3 首节点应修正为「加载 SOUL.md &rarr; skills 索引 &rarr; MEMORY.md &rarr; USER.md（冻结快照）」。</li>
+      <li class="ok"><strong>19.3 其余环节</strong>（写盘即时、安全扫描 + 重复检查、下会话重载循环）：全部证实。</li>
+    </ul>
+    <p style="margin-top:10px; color:var(--text-dim); font-size:12.5px">排查基线：hermes-agent 开发版本地源码（D:\D815_hermesagent\hermes-agent），2026-08-19 只读排查，未修改任何系统代码。</p>
+  </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<div class="footer">
+  <p>Hermes Agent 记忆模块手册（完整版 v2.2 源码验证版）&mdash; 基于官方文档与 DeepSeek 对话完整实录整理，经 hermes-agent 本地源码逐节排查标注，并含八插件逐行解析与对比表</p>
+  <p>来源链接：<br>
+    <a href="https://hermes-agent.nousresearch.com/docs/zh-Hans/user-guide/features/memory/" style="color: var(--accent);">https://hermes-agent.nousresearch.com/docs/zh-Hans/user-guide/features/memory/</a><br>
+    <a href="https://chat.deepseek.com/share/v016ckdv5x1mq3fh58" style="color: var(--accent);">https://chat.deepseek.com/share/v016ckdv5x1mq3fh58</a>
+  </p>
+  <p>整理日期：2026-08-19</p>
+</div>
+
+</div>
+
+</body>
+</html>
