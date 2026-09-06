@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>记忆机制与使用手册</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  body { background: #f4f5f7; padding: 32px 20px; color: #1e293b; line-height: 1.75; }
+  .doc { max-width: 1000px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 40px 48px; box-shadow: 0 4px 24px rgba(15,23,42,.06); }
+  h1 { font-size: 23px; margin-bottom: 4px; color: #0f172a; }
+  .subtitle { color: #64748b; font-size: 13px; margin-bottom: 8px; }
+  .lead { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #6c8aff; border-radius: 8px; padding: 14px 18px; margin: 16px 0 8px; font-size: 14px; color: #334155; }
+  h2 { font-size: 18px; margin: 34px 0 12px; padding-bottom: 8px; border-bottom: 2px solid #eef2ff; color: #1e293b; }
+  h3 { font-size: 15.5px; margin: 22px 0 8px; color: #27303f; }
+  p, li { font-size: 14px; color: #334155; }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 5px 0; }
+  code { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px; padding: 1px 5px; font-size: 12.5px; font-family: "SFMono-Regular", Consolas, monospace; color: #d6336c; }
+  pre { background: #0f172a; color: #e2e8f0; border-radius: 10px; padding: 16px 18px; overflow-x: auto; font-size: 12.5px; line-height: 1.7; margin: 12px 0; }
+  pre code { background: none; border: none; color: inherit; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13px; }
+  th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; vertical-align: top; }
+  th { background: #f8fafc; font-weight: 600; color: #1e293b; }
+  .card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 18px; margin: 14px 0; background: #fff; }
+  .card.blue { border-left: 4px solid #6c8aff; background: #f5f8ff; }
+  .card.green { border-left: 4px solid #22c55e; background: #f0fdf4; }
+  .card.amber { border-left: 4px solid #f59e0b; background: #fffbeb; }
+  .card .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; margin-bottom: 8px; }
+  .tag.blue { background: #e0e7ff; color: #4338ca; }
+  .tag.green { background: #dcfce7; color: #15803d; }
+  .tag.amber { background: #fef3c7; color: #b45309; }
+  .flow { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px 22px; margin: 14px 0; }
+  .flow-step { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; }
+  .flow-step .num { flex: 0 0 26px; height: 26px; border-radius: 50%; background: #6c8aff; color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .flow-step.read .num { background: #0ea5e9; }
+  .flow-step.write .num { background: #22c55e; }
+  .flow-step .txt { flex: 1; }
+  .flow-arrow { text-align: center; color: #94a3b8; font-size: 18px; line-height: 1; }
+  .filechip { display: inline-block; font-size: 12px; background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; border-radius: 6px; padding: 1px 8px; margin: 2px 2px; font-family: "SFMono-Regular", Consolas, monospace; }
+  .prio { border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin: 12px 0; }
+  .prio .rank { font-weight: 700; font-size: 13px; color: #fff; display: inline-block; padding: 2px 10px; border-radius: 6px; margin-bottom: 6px; }
+  .p1 .rank { background: #dc2626; }
+  .p2 .rank { background: #ea580c; }
+  .p3 .rank { background: #2563eb; }
+  .p4 .rank { background: #64748b; }
+  .prio .name { font-weight: 600; font-size: 14px; margin: 4px 0; }
+  .note { font-size: 13px; color: #64748b; }
+  .kbd { background: #1e293b; color: #e2e8f0; border-radius: 5px; padding: 1px 8px; font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; }
+  .footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <h1>记忆机制与使用手册</h1>
+  <div class="subtitle">Hermes Agent 记忆系统 · 给每一位使用者的通俗说明</div>
+  <div class="lead">
+    <strong>一句话理解：</strong> Hermes 像一个有记性的同事。它把"你是谁、你们一起做过什么、你有什么偏好"写进几个文本文件，每次新开会话都会先读一遍，于是它记得你、记得项目，不用你每回从头解释。本手册告诉你这些文件是怎么被写进去的、系统怎么读它们、以及你能怎么主动管理。
+  </div>
+
+  <!-- ================= 模块一：全景图 ================= -->
+  <h2>一、记忆是怎么运转的？（一张图看懂）</h2>
+  <p>下面这张图把 Hermes 一次完整的工作过程画了出来。你可以把它分成<strong>上半段（读：加载记忆）</strong>和<strong>下半段（写：沉淀记忆）</strong>。记忆系统就藏在这两半里。</p>
+
+  <div class="flow">
+    <div class="flow-step read">
+      <div class="num">1</div>
+      <div class="txt"><strong>收到任务</strong><br>你发来一句话，比如"帮我修复登录接口的超时问题"。</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step read">
+      <div class="num">2</div>
+      <div class="txt"><strong>加载身份与偏好</strong> → 读入 <span class="filechip">SOUL.md</span> <span class="filechip">USER.md</span><br>先搞清楚"我是谁"（AI 的性格）、"你是谁"（你的口味与习惯）。这两个文件在会话一开始就锁定，过程中不再改变。</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step read">
+      <div class="num">3</div>
+      <div class="txt"><strong>理解你的意图</strong><br>结合你的偏好，判断你到底想要什么。</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step read">
+      <div class="num">4</div>
+      <div class="txt"><strong>读取长期记忆与技能</strong> → 读入 <span class="filechip">MEMORY.md</span> 和 <code>skills/</code> 目录<br>"这个项目之前用过什么技术栈？""上次那个坑怎么绕过去的？""有没有现成的技能可以直接用？"——把过去的经验调出来。</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step read">
+      <div class="num">5</div>
+      <div class="txt"><strong>制定方案并推理执行</strong><br>融合上面所有信息，开始干活（调用工具、跑命令、查资料）。这一步产生的临时内容只放在对话里，<strong>不落盘</strong>。</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step write">
+      <div class="num">6</div>
+      <div class="txt"><strong>检查执行结果</strong><br>事情做成了，还是翻车了？如果失败，就反思、重新规划。</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step write">
+      <div class="num">7</div>
+      <div class="txt"><strong>学习沉淀（关键一步）</strong> → 写入 <span class="filechip">MEMORY.md</span> / <span class="filechip">USER.md</span><br>如果这次学到了新事实（"本项目必须用 Python 3.10"），就写进 MEMORY.md；如果发现你的新偏好（"你明确说过别讲理论"），就更新 USER.md。</div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step write">
+      <div class="num">8</div>
+      <div class="txt"><strong>生成新的技能</strong> → 在 <code>skills/</code> 下新建文件<br>如果这次做法特别成功、而且以后还会反复用到，就把步骤固化成一个"技能"，下次直接调用，省去重新规划。</div>
+    </div>
+  </div>
+
+  <div class="card blue">
+    <span class="tag blue">记住这三点</span>
+    <ul>
+      <li><span class="filechip">SOUL.md</span> 和 <span class="filechip">USER.md</span> 是<strong>会话一开始就锁死</strong>的。想彻底改变 AI 的风格，改这两个文件比删 MEMORY.md 更管用。</li>
+      <li><span class="filechip">MEMORY.md</span> 是<strong>持续积累</strong>的，记录"我们做过什么、项目有什么事实（What）"。</li>
+      <li><strong>技能文件</strong>是<strong>最终成品</strong>，记录"怎么做（How）"。一旦生成，下次直接在"读取技能"那一步被命中，效率大增。</li>
+    </ul>
+  </div>
+
+  <!-- ================= 模块二：两个文件怎么被写 ================= -->
+  <h2>二、MEMORY.md 和 USER.md 是怎么被更新的？</h2>
+  <p>这两个文件内容有三种来源：<strong>系统自动写入</strong>、<strong>你在记忆管理模块里手动增删改</strong>、<strong>你在聊天窗口里主动触发</strong>。下面逐一说清楚。</p>
+
+  <h3>① 系统自动写入（最常见，你基本无感知）</h3>
+  <div class="card green">
+    <span class="tag green">自动机制</span>
+    <p>Hermes 内置了一个叫 <code>memory</code> 的"记忆工具"。在对话过程中，当 AI 判断某句话值得长期记住（例如你透露了工作习惯、项目定了某个技术约定、踩过一个坑并解决了），它会<strong>自己调用这个工具</strong>，把内容写进对应的文件。</p>
+    <ul>
+      <li>关于<strong>项目事实、技术约定、已解决的 Bug</strong> → 写进 <span class="filechip">MEMORY.md</span></li>
+      <li>关于<strong>你的偏好、身份、沟通方式</strong> → 写进 <span class="filechip">USER.md</span></li>
+    </ul>
+    <p class="note">这意味着你正常使用 Hermes，它就会慢慢"认识你"。你不需要手动去建这两个文件。</p>
+  </div>
+
+  <h3>② 你在「记忆管理模块」里手动增删改</h3>
+  <div class="card blue">
+    <span class="tag blue">手动管理</span>
+    <p>在左侧资料卡点开「记忆管理」弹窗，你可以：</p>
+    <ul>
+      <li><strong>添加</strong>一条记忆 / 一条画像——直接把想让它记住的话写进去；</li>
+      <li><strong>修改</strong>某条已有的内容——比如它记错了，你纠正它；</li>
+      <li><strong>删除</strong>某条——比如一条过时的约定。</li>
+    </ul>
+    <p>这相当于你以"管理员"身份直接维护这两个文件，<strong>优先级极高</strong>：你写进去的内容，下一次会话就会被读取并生效。这是纠正 AI 记忆偏差最直接的手段。</p>
+  </div>
+
+  <h3>③ 在聊天窗口里主动触发（把聊天内容写进记忆）</h3>
+  <div class="card amber">
+    <span class="tag amber">主动触发</span>
+    <p>除了系统自动写、手动管理，你还可以在<strong>聊天输入框</strong>里用斜杠命令，主动让 Hermes 把当前会话的收获沉淀成记忆。常用两个：</p>
+    <ul>
+      <li><span class="kbd">/refine</span> —— <strong>"现在就审查这段对话，并把经验教训存进记忆 / 技能"</strong>。<br>
+        当你完成一件有含金量的事后，发一句 <code>/refine</code>，Hermes 会回看整个会话，把值得长期保留的事实、偏好、做法分别写进 MEMORY.md / USER.md，或固化成技能。</li>
+      <li><span class="kbd">/memory</span> —— <strong>"查看待写入的记忆 / 开关审批闸门"</strong>。<br>
+        如果你开启了"记忆写入需确认"，AI 写记忆前会先列出来等你批准；用 <code>/memory</code> 可以查看这些待写入项并管理开关。</li>
+    </ul>
+    <p class="note">小提示：<code>/learn</code> 也是斜杠命令，但它的作用是"从你描述的东西里学出一个<strong>可复用的技能</strong>"（例如"教它怎么部署到某平台"），偏向生成技能文件，而不是写 MEMORY.md/USER.md。按需选用即可。</p>
+  </div>
+
+  <div class="card">
+    <span class="tag blue">三种方式怎么选？</span>
+    <ul>
+      <li><strong>日常使用</strong> → 交给系统自动写入，最省心；</li>
+      <li><strong>发现它记错 / 想灌输重要规则</strong> → 用记忆管理模块手动改；</li>
+      <li><strong>刚聊完一件有价值的事，想立刻固化</strong> → 在聊天里发 <code>/refine</code>。</li>
+    </ul>
+  </div>
+
+  <!-- ================= 模块三：加载优先级 ================= -->
+  <h2>三、系统怎么"加载"这些记忆？（4 类文件的管控顺序）</h2>
+  <p>每次新开会话，Hermes 会把下面几类文件<strong>按顺序拼装</strong>成一份"系统提示词"，作为 AI 思考的背景。理解这个顺序，你就知道哪份文件"说话分量更重"。</p>
+
+  <div class="prio p1">
+    <span class="rank">第 1 类 · 最高权重</span>
+    <div class="name">📜 宪法：<code>SOUL.md</code></div>
+    <p><strong>管什么：</strong>定义"你是谁"——核心身份、底层价值观、不可违背的铁律。</p>
+    <p><strong>是否自动更新：</strong>否，只由你手动设置。</p>
+    <p><strong>特点：</strong>它位于拼装序列最前，代表 AI 的"根基人格"。如果你想给 AI 上"紧箍咒"（比如强制它优先遵守某条原则），改这里最有效。</p>
+  </div>
+
+  <div class="prio p3">
+    <span class="rank">第 2 类 · 工作背景</span>
+    <div class="name">🗂️ 工作日志：<code>MEMORY.md</code></div>
+    <p><strong>管什么：</strong>定义"你们一起做过什么"——项目技术栈、已知 Bug 解法、已定的架构约定。</p>
+    <p><strong>是否自动更新：</strong>是，AI 在对话中自动积累。</p>
+    <p><strong>特点：</strong>当记忆中的"项目事实"和通用知识冲突时，Hermes 会优先听 MEMORY.md 里这个项目的既定事实。</p>
+  </div>
+
+  <div class="prio p2">
+    <span class="rank">第 3 类 · 用户档案</span>
+    <div class="name">👤 用户画像：<code>USER.md</code></div>
+    <p><strong>管什么：</strong>定义"你是谁"——你的背景、沟通偏好、个人习惯。</p>
+    <p><strong>是否自动更新：</strong>是，AI 在对话中自动积累。</p>
+    <p><strong>特点：</strong>当"你的明确偏好"和"泛化的记忆知识"冲突时，Hermes 会优先听 USER.md 里你的偏好。</p>
+  </div>
+
+  <div class="prio p4">
+    <span class="rank">第 4 类 · 临时补充</span>
+    <div class="name">📝 项目便签：<code>IDEA.md</code> 及当前会话上下文</div>
+    <p><strong>管什么：</strong>定义"这个具体项目当下要干嘛"——本次目标、范围。</p>
+    <p><strong>是否自动更新：</strong>否，由你新建项目时填写。</p>
+    <p><strong>特点：</strong>作为当前任务的上下文补充。注意：项目级上下文真正会被读取的是项目文件夹里的 <code>AGENTS.md</code> / <code>.hermes.md</code> 等文件，它们代表了本次任务的刚性目标。</p>
+  </div>
+
+  <div class="card green">
+    <span class="tag green">实操心法</span>
+    <p>如果 AI 的性格（Soul）被自动积累的记忆（Memory）带偏了，<strong>不要去删 Memory</strong>，而是直接去修改 <code>SOUL.md</code>，在开头加一句"无论如何，你必须优先遵守以下原则……"。这等于给 AI 上了"紧箍咒"，记忆无论如何积累都无法撼动它。这是管控权重的最高心法。</p>
+  </div>
+
+  <h3>文件路径速查（默认分身）</h3>
+  <table>
+    <tr><th>文件</th><th>作用</th><th>位置</th></tr>
+    <tr><td><strong>宪法</strong> <code>SOUL.md</code></td><td>核心身份与铁律</td><td>Hermes 主目录下的 <code>SOUL.md</code></td></tr>
+    <tr><td><strong>用户档案</strong> <code>USER.md</code></td><td>你的偏好与习惯</td><td>分身 <code>memories/USER.md</code></td></tr>
+    <tr><td><strong>工作日志</strong> <code>MEMORY.md</code></td><td>项目事实与经验</td><td>分身 <code>memories/MEMORY.md</code></td></tr>
+    <tr><td><strong>项目便签</strong> <code>IDEA.md</code></td><td>当下任务目标</td><td>项目工作区文件夹内（如 <code>MyProject/IDEA.md</code>）</td></tr>
+  </table>
+  <p class="note">注：多分身时，每个分身有自己独立的 <code>memories/</code> 目录，记忆互不干扰。你在本模块的「当前分身：XX」标签处，看到的就是正在编辑哪一个分身的文件。</p>
+
+  <div class="footer">
+    本手册内容用于「记忆管理模块」的"使用手册 / 了解记忆机制与指南"弹窗。内容基于 Hermes 记忆系统官方说明整理，用通俗语言改写，供非技术使用者阅读。
+  </div>
+
+</div>
+</body>
+</html>
