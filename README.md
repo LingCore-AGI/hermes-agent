@@ -52,7 +52,7 @@
 
 ### 桌面端演示
 
-[<img src="./aOffice/assets/demo/desktop01.png" alt="Hermes Agent 灵核桌面版工作台" width="100%">]()
+[<img src="./aOffice/assets/demo/desktop01.png" alt="Hermes Agent 灵核桌面版工作台" width="100%">](./aOffice/assets/demo/desktop01.png)
 
 
 
