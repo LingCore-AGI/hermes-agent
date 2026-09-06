@@ -50,9 +50,11 @@
  
     为了解决上面的问题，既要还要又要！hermes灵核桌面端应运而生------采用对于hermes agent系统进行修改一个文件，实现最小的侵入点，，从而达到更好的用户体验以及不破坏原生的任何功能。
 
-### 灵核桌面端演示
+### 桌面端演示
 
-![[desktop01.png]]
+[<img src="./aOffice/assets/demo/desktop01.png" alt="Hermes Agent 灵核桌面版工作台" width="100%">]()
+
+
 
 
 
